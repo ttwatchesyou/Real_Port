@@ -416,7 +416,7 @@ export const Shell = styled.div`
   .hero-copy-col,.hero-visual-col{position:relative;}
   .project-grid.ant-row{counter-reset:project;align-items:flex-start;}
   .project-col{counter-increment:project;}
-  .project-col .project-card{grid-column:auto;width:100%;height:100%;margin-top:0;}
+  .project-col .project-card{display:block;grid-column:auto;width:100%;height:100%;margin-top:0;}
   .project-col .project-visual{height:250px;}
   .project-col:nth-child(6n+1) .project-visual,.project-col:nth-child(6n+6) .project-visual{height:300px;}
   .project-col:nth-child(6n+3) .project-visual,.project-col:nth-child(6n+4) .project-visual{height:205px;}
