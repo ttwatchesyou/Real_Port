@@ -20,7 +20,7 @@ import { Notebook } from './styles';
 
 function Frame({children}:{children:ReactNode}){
   const {locale,t}=useLocale(),{palette}=useAppearance();
-  return <ConfigProvider locale={locale==='th'?thTH:locale==='zh'?zhCN:enUS} theme={{algorithm:palette.isDark?theme.darkAlgorithm:theme.defaultAlgorithm,token:{colorPrimary:palette.accent,colorBgContainer:palette.surface,colorBgElevated:palette.surface,colorText:palette.text,colorTextSecondary:palette.muted,colorBorder:palette.border,fontFamily:'Manrope, Arial, sans-serif'}}}>
+  return <ConfigProvider locale={locale==='th'?thTH:locale==='zh'?zhCN:enUS} theme={{algorithm:palette.isDark?theme.darkAlgorithm:theme.defaultAlgorithm,token:{colorPrimary:palette.accent,colorBgContainer:palette.surface,colorBgElevated:palette.surface,colorText:palette.text,colorTextSecondary:palette.muted,colorBorder:palette.border,fontFamily:'Kanit, Arial, sans-serif'}}}>
     <GlobalStyle/><Notebook>
       <header className="book-header"><div className="book-wrap header-inner"><Link href="/" className="book-brand">theetawatch<span>.</span></Link><div className="header-tools"><Link href="/#projects" className="home-link"><ArrowLeftOutlined/>{t('work.home')}</Link><AppearanceSwitcher/><LanguageSwitcher/></div></div></header>
       {children}

@@ -98,7 +98,7 @@ export default function Portfolio() {
     if(profile.email) window.location.href=`mailto:${profile.email}?subject=${encodeURIComponent('New project inquiry — '+values.name)}&body=${encodeURIComponent(text)}`;
   };
 
-  return <ConfigProvider locale={locale==='th'?thTH:locale==='zh'?zhCN:enUS} theme={{algorithm:palette.isDark?theme.darkAlgorithm:theme.defaultAlgorithm,token:{colorPrimary:palette.accent,colorBgElevated:palette.surface,colorBgContainer:palette.bg,colorText:palette.text,colorTextSecondary:palette.muted,colorBorder:palette.border,borderRadius:5,fontFamily:'Manrope, Arial, sans-serif'},components:{Button:{primaryColor:palette.onAction,colorPrimary:palette.action,colorPrimaryHover:palette.action}}}}>
+  return <ConfigProvider locale={locale==='th'?thTH:locale==='zh'?zhCN:enUS} theme={{algorithm:palette.isDark?theme.darkAlgorithm:theme.defaultAlgorithm,token:{colorPrimary:palette.accent,colorBgElevated:palette.surface,colorBgContainer:palette.bg,colorText:palette.text,colorTextSecondary:palette.muted,colorBorder:palette.border,borderRadius:5,fontFamily:'Kanit, Arial, sans-serif'},components:{Button:{primaryColor:palette.onAction,colorPrimary:palette.action,colorPrimaryHover:palette.action}}}}>
     <GlobalStyle/>
     <Shell ref={root} data-ready={ready}>
       <AmbientEffects effects={effects}/>

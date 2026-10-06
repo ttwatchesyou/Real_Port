@@ -16,7 +16,9 @@ const stages = [
 ];
 
 const Assembly = styled.section`
-  position:relative;height:300svh;border-bottom:1px solid var(--border);background:var(--bg);
+  position:relative;height:300svh;border-bottom:1px solid var(--border);background:var(--bg);overflow:clip;
+  &::before{content:'WORK / BENCH';position:absolute;left:-.04em;top:12svh;white-space:pre;font-size:clamp(90px,14vw,210px);font-weight:800;line-height:.7;letter-spacing:-.08em;color:var(--text);opacity:.022;pointer-events:none;}
+  &::after{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(transparent,var(--accent) 25% 75%,transparent);opacity:.65;}
   .assembly-sticky{position:sticky;top:86px;height:calc(100svh - 86px);min-height:610px;max-height:1000px;display:flex;flex-direction:column;justify-content:center;}
   .assembly-top{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:26px;}
   .assembly-top .section-label{margin:0;}
@@ -24,8 +26,8 @@ const Assembly = styled.section`
   .assembly-layout{display:grid;grid-template-columns:.82fr 1.18fr;gap:30px;align-items:center;}
   .assembly-copy{position:relative;z-index:2;}
   .assembly-copy h2{font-size:clamp(34px,3.8vw,54px);line-height:1.12;letter-spacing:-2px;margin:0 0 24px;}
-  .assembly-copy h2 em{font-family:Georgia,serif;font-weight:400;color:var(--muted);}
-  .assembly-note{display:inline-block;color:var(--warm);font-family:Georgia,serif;font-size:17px;font-style:italic;transform:rotate(-5deg);margin-bottom:25px;border-bottom:1px solid var(--border);padding-bottom:5px;}
+  .assembly-copy h2 em{font-family:var(--font-sans);font-weight:300;font-style:italic;color:var(--muted);}
+  .assembly-note{display:inline-block;color:var(--warm);font-family:var(--font-sans);font-size:17px;font-style:italic;transform:rotate(-5deg);margin-bottom:25px;border-bottom:1px solid var(--border);padding-bottom:5px;}
   .stage-note{font-family:var(--mono);color:var(--accent);font-size:9px;letter-spacing:1px;margin-bottom:13px;}
   .assembly-copy h3{font-size:19px;font-weight:500;margin:0 0 10px;}
   .assembly-copy p{font-size:13px;color:var(--muted);line-height:1.95;max-width:310px;min-height:80px;margin:0;}
@@ -33,9 +35,9 @@ const Assembly = styled.section`
   .assembly-tabs button{background:transparent;border:1px solid var(--border);color:var(--muted);padding:9px 11px;border-radius:3px;font-family:var(--mono);font-size:9px;}
   .assembly-tabs button[aria-pressed='true']{color:var(--accent);background:var(--surface);border-color:var(--border);}
   .assembly-tabs button span{opacity:.5;margin-right:7px;}
-  .assembly-scene{position:relative;min-width:0;height:470px;perspective:1050px;isolation:isolate;}
+  .assembly-scene{position:relative;min-width:0;height:470px;perspective:1050px;isolation:isolate;border:1px solid var(--border);border-radius:0 34px 0 0;background:color-mix(in srgb,var(--surface) 32%,transparent);}
   .model-pending{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font:9px var(--mono);letter-spacing:1px;}
-  .assembly-scene::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 55% 60%,var(--glow),transparent 65%),linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:auto,36px 36px,36px 36px;mask-image:radial-gradient(ellipse,#000 30%,transparent 75%);}
+  .assembly-scene::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 55% 60%,var(--glow),transparent 65%),linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:auto,36px 36px,36px 36px;mask-image:radial-gradient(ellipse,#000 30%,transparent 82%);}
   .assembly-coordinate{position:absolute;bottom:7px;right:15px;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;}
   .layer-legend{position:absolute;right:0;top:6px;pointer-events:none;display:grid;gap:8px;font-family:var(--mono);font-size:8px;color:var(--muted);}
   .layer-legend span{display:flex;align-items:center;gap:7px;}

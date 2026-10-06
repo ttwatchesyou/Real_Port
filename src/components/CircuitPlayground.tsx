@@ -5,7 +5,8 @@ import { useLocale } from './LocaleProvider';
 const signal = keyframes`to{stroke-dashoffset:-100;}`;
 const halo = keyframes`50%{opacity:.25;transform:scale(1.12);}`;
 const Lab = styled.section`
-  border-bottom:1px solid var(--border);background:var(--surface);
+  position:relative;overflow:hidden;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--surface),color-mix(in srgb,var(--sky-one) 12%,var(--surface)));
+  &::before{content:'LIVE / 05';position:absolute;right:3vw;top:24px;font:clamp(48px,8vw,112px) var(--mono);letter-spacing:-.08em;color:var(--text);opacity:.025;}
   .lab-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:55px;align-items:center;}
   .lab-copy p{max-width:380px;font-size:13px;color:var(--muted);line-height:1.9;}
   .lab-controls{display:flex;flex-wrap:wrap;gap:8px;margin:25px 0 20px;}
@@ -13,7 +14,7 @@ const Lab = styled.section`
   button[aria-pressed='true']{border-color:var(--accent);color:var(--accent);background:var(--surface-strong);}
   .lab-slider{display:grid;grid-template-columns:1fr auto;gap:12px;font-size:11px;color:var(--muted);max-width:350px;}
   .lab-slider input{grid-column:1/-1;width:100%;accent-color:var(--accent);cursor:ew-resize;}
-  .lab-display{border:1px solid var(--border);border-radius:12px;background:radial-gradient(ellipse,var(--glow),transparent 70%),var(--bg);padding:20px;box-shadow:inset 0 0 70px var(--shadow);min-width:0;}
+  .lab-display{border:1px solid var(--border);border-radius:0 30px 0 0;background:radial-gradient(ellipse,var(--glow),transparent 70%),var(--bg);padding:20px;box-shadow:12px 14px 0 var(--shadow),inset 0 0 70px var(--shadow);min-width:0;}
   .lab-display svg{width:100%;height:auto;display:block;overflow:visible;}
   .wire{fill:none;stroke:var(--border);stroke-width:2;}
   .live-wire{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:5 15;animation:${signal} 2s linear infinite;}
