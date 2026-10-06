@@ -1,0 +1,67 @@
+import assert from 'node:assert/strict';
+import { chromium } from '@playwright/test';
+
+const browser=await chromium.launch({executablePath:process.env.CHROME_BIN||undefined,args:['--no-sandbox','--enable-unsafe-swiftshader']});
+const page=await browser.newPage({viewport:{width:1280,height:900}}),errors=[];
+page.on('pageerror',error=>errors.push(error.message));
+const url=process.env.BASE_URL||'http://localhost:3000';
+await page.goto(`${url}/pid-lab`,{waitUntil:'networkidle'});
+await page.locator('select').first().selectOption('en');
+await page.locator('.model-scene[data-renderer="ready"]').waitFor();
+
+await page.getByRole('tab',{name:/Inverted pendulum/}).click();
+const pendulum=page.locator('.model-scene[role="application"]');
+await pendulum.waitFor();
+assert.equal(await pendulum.getAttribute('data-draggable'),'true');
+const canvasBox=await pendulum.boundingBox();
+assert.ok(canvasBox);
+await page.getByTestId('run-toggle').click();
+await page.waitForFunction(()=>Number(document.querySelector('[data-testid="sim-time"]')?.textContent)>0.35);
+const initialTarget=await page.locator('#target-command').inputValue();
+await page.mouse.move(canvasBox.x+canvasBox.width*.5,canvasBox.y+canvasBox.height*.42);
+await page.mouse.down();
+await page.mouse.move(canvasBox.x+canvasBox.width*.72,canvasBox.y+canvasBox.height*.55,{steps:4});
+await page.mouse.up();
+await page.getByText('Drag disturbance applied',{exact:true}).waitFor();
+assert.ok(Number(await page.getByTestId('sim-time').innerText())>.35,'Dragging keeps the physics clock running');
+const angleAfterImpulse=Number(await pendulum.getAttribute('data-angle'));
+const timeAfterDrag=Number(await page.getByTestId('sim-time').innerText());
+await page.waitForFunction(time=>Number(document.querySelector('[data-testid="sim-time"]')?.textContent)>time+.45,timeAfterDrag);
+assert.ok(Math.abs(Number(await pendulum.getAttribute('data-angle'))-angleAfterImpulse)>.15,'The plant responds dynamically after a drag impulse');
+assert.equal(await page.locator('#target-command').inputValue(),initialTarget,'Drag does not change the configured setpoint');
+await pendulum.focus();
+await pendulum.press('ArrowLeft');
+assert.match(await page.locator('[role="status"]').innerText(),/Drag disturbance applied/);
+
+const kp=page.getByRole('spinbutton',{name:'Inner KP'});
+assert.equal(await kp.getAttribute('inputmode'),'numeric');
+await kp.click();await kp.press('Control+A');await kp.press('Backspace');
+assert.equal(await kp.inputValue(),'');
+await kp.type('12.3');await kp.press('Tab');
+assert.equal(await kp.inputValue(),'12.3');
+
+await page.getByRole('tab',{name:/Cart-pole/}).click();
+const cart=page.locator('.model-scene[role="application"]');
+await cart.waitFor();
+const cartBox=await cart.boundingBox();assert.ok(cartBox);
+await page.getByTestId('run-toggle').click();
+await page.waitForFunction(()=>Number(document.querySelector('[data-testid="sim-time"]')?.textContent)>0.35);
+const cartInitial=await page.locator('#target-command').inputValue();
+await page.mouse.move(cartBox.x+cartBox.width*.5,cartBox.y+cartBox.height*.45);
+await page.mouse.down();await page.mouse.move(cartBox.x+cartBox.width*.28,cartBox.y+cartBox.height*.56,{steps:4});await page.mouse.up();
+await page.getByText('Drag disturbance applied',{exact:true}).waitFor();
+assert.equal(await page.locator('#target-command').inputValue(),cartInitial,'Cart drag keeps its configured target');
+
+await page.getByRole('tab',{name:/DC motor/}).click();
+const speed=page.locator('#speed-command');
+assert.equal(await speed.getAttribute('inputmode'),'decimal');
+await speed.click();await speed.press('Control+A');await speed.press('Backspace');
+assert.equal(await speed.inputValue(),'');
+await speed.type('-240');assert.equal(await speed.inputValue(),'-240');
+await page.getByRole('button',{name:'Apply target'}).click();
+await page.getByTestId('run-toggle').click();
+await page.waitForFunction(()=>Number(document.querySelector('[data-testid="sim-time"]')?.textContent)>0.4);
+assert.ok(Number(await page.getByTestId('metric-actual').innerText())<0,'Signed numeric command controls reverse speed');
+assert.deepEqual(errors,[]);
+await browser.close();
+console.log('PASS: live drag disturbances, keyboard disturbances, unchanged setpoints, editable numeric fields and signed mobile-friendly decimal command.');
