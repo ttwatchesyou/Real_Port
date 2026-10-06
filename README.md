@@ -25,6 +25,10 @@ yarn start
 
 ตั้งค่าเป็น static export ไฟล์เว็บพร้อม deploy อยู่ใน `out/` หลัง build ใช้ static hosting ได้ ไม่ต้องมี backend ใช้ `yarn install --immutable` เมื่อต้องการติดตั้งตาม lockfile โดยไม่แก้ไขไฟล์ เช่นใน CI
 
+## URL สำหรับ SEO และ Social Preview
+
+บน Vercel เว็บจะใช้ `VERCEL_PROJECT_PRODUCTION_URL` เพื่อสร้าง canonical URL, Open Graph, `robots.txt` และ `sitemap.xml` อัตโนมัติ หาก deploy ไปผู้ให้บริการอื่น ให้ตั้ง `NEXT_PUBLIC_SITE_URL` เป็น origin สาธารณะ เช่น `https://portfolio.example.com` ตามตัวอย่างใน `.env.example` หากไม่มี URL สาธารณะ ระบบจะปิดการ index ใน `robots.txt` เพื่อไม่ให้ URL localhost ถูกเก็บโดย Search Engine
+
 ## เพิ่มผลงานและเปลี่ยนข้อมูล
 
 - `src/data/portfolio.ts`: เปลี่ยนข้อมูลส่วนตัว, อีเมล, ผลงาน, หมวดหมู่ และ tags

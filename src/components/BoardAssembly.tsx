@@ -1,10 +1,13 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import styled from 'styled-components';
 import { ArrowDownOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { useLocale } from './LocaleProvider';
-import BoardModel, { type BoardModelHandle } from './BoardModel';
+import type { BoardModelHandle } from './BoardModel';
+
+const BoardModel = dynamic(() => import('./BoardModel'), { ssr: false });
 
 const stages = [
   { label: 'Together', title: 'เริ่มจากบอร์ดหนึ่งตัว', text: 'ดูจากข้างนอกก็เป็นบอร์ดเล็ก ๆ ตัวหนึ่ง ลองเลื่อนลงอีกนิด แล้วดูว่าข้างในมีอะไรบ้าง', note: '01 / THE WHOLE BOARD' },
@@ -31,6 +34,7 @@ const Assembly = styled.section`
   .assembly-tabs button[aria-pressed='true']{color:var(--accent);background:var(--surface);border-color:var(--border);}
   .assembly-tabs button span{opacity:.5;margin-right:7px;}
   .assembly-scene{position:relative;min-width:0;height:470px;perspective:1050px;isolation:isolate;}
+  .model-pending{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font:9px var(--mono);letter-spacing:1px;}
   .assembly-scene::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 55% 60%,var(--glow),transparent 65%),linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:auto,36px 36px,36px 36px;mask-image:radial-gradient(ellipse,#000 30%,transparent 75%);}
   .assembly-coordinate{position:absolute;bottom:7px;right:15px;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;}
   .layer-legend{position:absolute;right:0;top:6px;pointer-events:none;display:grid;gap:8px;font-family:var(--mono);font-size:8px;color:var(--muted);}
@@ -67,6 +71,16 @@ export default function BoardAssembly({ effects }: { effects: boolean }) {
   const scene = useRef<HTMLDivElement>(null);
   const model = useRef<BoardModelHandle>(null);
   const [stage, setStage] = useState(0);
+  const [loadModel, setLoadModel] = useState(false);
+  useEffect(()=>{
+    const host=section.current;
+    if(!host)return;
+    const observer=new IntersectionObserver(entries=>{
+      if(entries.some(entry=>entry.isIntersecting)){setLoadModel(true);observer.disconnect();}
+    },{threshold:.05});
+    observer.observe(host);
+    return()=>observer.disconnect();
+  },[]);
   useEffect(()=>{
     if(!playing||!effects)return;
     const start=performance.now();
@@ -116,7 +130,7 @@ export default function BoardAssembly({ effects }: { effects: boolean }) {
       <div className="assembly-layout">
         <div className="assembly-copy"><span className="assembly-note">{t("a closer look ↘")}</span><h2 id="workbench-heading">{t("Things make sense")}<br/><em>{t("piece by piece.")}</em></h2><div className="stage-note">{t(stages[stage].note)}</div><h3>{t(stages[stage].title)}</h3><p>{t(stages[stage].text)}</p><div className="assembly-tabs" aria-label={t("Board assembly stages")}>{stages.map((item, i) => <button key={t(item.label)} onClick={() => selectStage(i)} aria-pressed={stage === i}><span>0{i + 1}</span>{t(item.label)}</button>)}</div><div className="assembly-transport">{effects&&<button className="assembly-play" onClick={play} aria-pressed={playing}>{t(playing?'Pause demo':'Play assembly')}</button>}<input type="range" min="0" max="100" step="1" aria-label={t('Assembly timeline')} value={Math.round(progress*100)} onChange={e=>{manual.current=true;setPlaying(false);update(Number(e.target.value)/100);}}/><output>{Math.round(progress*100)}%</output></div></div>
         <div className="assembly-scene" ref={scene} aria-label={t("Interactive ESP32 assembly")}>
-          <BoardModel ref={model} effects={effects}/>
+          {loadModel?<BoardModel ref={model} effects={effects}/>:<div className="board-model model-pending" data-renderer="pending" role="status">{t('Preparing the workbench…')}</div>}
           <div className="layer-legend" aria-hidden="true"><span><i/>{t("01 RF SHIELD")}</span><span><i/>{t("02 COMPONENTS")}</span><span><i/>{t("03 PIN HEADERS")}</span><span><i/>{t("04 COPPER TRACES")}</span><span><i/>{t("05 PCB SUBSTRATE")}</span></div>
         </div>
       </div>

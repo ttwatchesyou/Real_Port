@@ -13,6 +13,7 @@ assert.equal(await page.locator('img[src*="-photo.png"]').count(),0,'Generated p
 assert.equal(await page.locator('.hero .board-float svg').count(),1);
 await page.locator('select').selectOption('en');
 assert.match(await page.locator('.hero-description').innerText(),/I build robots/);
+assert.equal(await page.getByRole('link',{name:'GitHub profile'}).first().getAttribute('href'),'https://github.com/ttwatchesyou');
 await page.getByRole('button',{name:'View all 19 projects'}).click();
 assert.equal(await page.locator('.project-card').count(),19);
 await page.getByRole('button',{name:'Robotics',exact:true}).click();
@@ -40,9 +41,10 @@ assert.match(await page.locator('.draft-result').innerText(),/Build a connected 
 await page.locator('.ant-modal-close').click();
 await page.getByRole('dialog').waitFor({state:'hidden'});
 const model=page.locator('.board-model');
+await page.locator('#workbench').scrollIntoViewIfNeeded();
 await page.locator('.board-model[data-renderer="ready"]').waitFor();
 assert.ok(Number(await model.getAttribute('data-part-count'))>=100);
-const waitPose=async(exploded)=>page.waitForFunction(flag=>{const n=Number(document.querySelector('.board-model').dataset.renderedSpread);return flag?n>.995:n<.005;},exploded,{timeout:15000});
+const waitPose=async(exploded)=>page.waitForFunction(flag=>{const n=Number(document.querySelector('.board-model')?.dataset.renderedSpread);return flag?n>.995:n<.005;},exploded,{timeout:15000});
 const scrollAssembly=async(progress)=>{await page.locator('#workbench').evaluate((host,p)=>{const sticky=host.querySelector('.assembly-sticky');window.dispatchEvent(new WheelEvent('wheel'));scrollTo({top:scrollY+host.getBoundingClientRect().top-parseFloat(getComputedStyle(sticky).top)+p*(host.offsetHeight-sticky.offsetHeight),behavior:'instant'});},progress);};
 await scrollAssembly(0);await waitPose(false);
 const assembled=await page.locator('.board-model canvas').screenshot();
@@ -87,13 +89,13 @@ for(const locale of ['th','zh','en']){
 }
 await page.locator('select').selectOption('zh');await page.reload({waitUntil:'networkidle'});assert.equal(await page.locator('html').getAttribute('lang'),'zh-CN');
 await page.locator('button.project-card').first().click();await page.getByRole('dialog').waitFor();assert.match(await page.locator('.project-role').innerText(),/设计/);await page.locator('.ant-modal-close').click();await page.getByRole('dialog').waitFor({state:'hidden'});
-await page.setViewportSize({width:390,height:844});await page.locator('.assembly-tabs button').nth(1).click();await waitPose(true);await page.screenshot({path:'test-results/assembly-mobile.png'});
+await page.setViewportSize({width:390,height:844});await page.locator('#workbench').scrollIntoViewIfNeeded();await page.locator('.board-model[data-renderer="ready"]').waitFor();await page.locator('.assembly-tabs button').nth(1).click();await waitPose(true);await page.screenshot({path:'test-results/assembly-mobile.png'});
 await page.getByRole('button',{name:'打开菜单'}).click();await page.getByRole('link',{name:'作品',exact:true}).click();assert.equal(await page.getByRole('button',{name:'打开菜单'}).getAttribute('aria-expanded'),'false');
 await page.emulateMedia({reducedMotion:'reduce'});await page.waitForFunction(()=>document.body.dataset.effects==='off');await page.locator('.assembly-tabs button').nth(1).click();await waitPose(true);
 assert.equal(await page.locator('.assembly-play').count(),0);
 const fallback=await browser.newPage({reducedMotion:'reduce'});
 await fallback.addInitScript(()=>{const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(kind,...args){return kind.startsWith('webgl')?null:original.call(this,kind,...args);};});
-await fallback.goto(url,{waitUntil:'networkidle'});await fallback.locator('.board-model[data-renderer="unavailable"]').waitFor();await fallback.locator('.assembly-tabs button').nth(1).click();assert.equal(await fallback.locator('.board-model').getAttribute('data-spread'),'true');assert.ok(await fallback.locator('.model-fallback svg').isVisible());
+await fallback.goto(url,{waitUntil:'networkidle'});await fallback.locator('#workbench').scrollIntoViewIfNeeded();await fallback.locator('.board-model[data-renderer="unavailable"]').waitFor();await fallback.locator('.assembly-tabs button').nth(1).click();assert.equal(await fallback.locator('.board-model').getAttribute('data-spread'),'true');assert.ok(await fallback.locator('.model-fallback svg').isVisible());
 assert.deepEqual(errors,[]);
 await browser.close();
 console.log('PASS: restored vectors; 105 independent parts; actual canvas separation/reassembly; scroll both ways; buttons, scrubber, demo, zoom, wireframe; interactive signal lab; TH/ZH/EN + persistence; translated project details; forms; pointer tilt; 15 responsive combinations; reduced motion; WebGL fallback.');

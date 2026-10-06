@@ -1507,5 +1507,25 @@ export const messages: Record<string, { th: string; en: string; zh: string }> = 
     "th": "ภาพประกอบกราฟการตอบสนอง PID",
     "en": "PID response illustration",
     "zh": "PID 响应示意图"
+  },
+  "GitHub profile": {
+    "th": "โปรไฟล์ GitHub",
+    "en": "GitHub profile",
+    "zh": "GitHub 主页"
+  },
+  "Open GitHub profile": {
+    "th": "เปิดโปรไฟล์ GitHub",
+    "en": "Open GitHub profile",
+    "zh": "打开 GitHub 主页"
+  },
+  "ยังไม่ได้ตั้งค่าอีเมล แบบฟอร์มนี้สร้างข้อความให้คัดลอก หรือสามารถติดต่อผ่าน GitHub ได้": {
+    "th": "ยังไม่ได้ตั้งค่าอีเมล แบบฟอร์มนี้สร้างข้อความให้คัดลอก หรือสามารถติดต่อผ่าน GitHub ได้",
+    "en": "Email is not configured yet. This form creates a message you can copy, or you can get in touch through GitHub.",
+    "zh": "尚未设置电子邮箱。此表单会生成可复制的消息，你也可以通过 GitHub 联系。"
+  },
+  "สร้างข้อความไว้คัดลอก หรือติดต่อผ่าน GitHub ได้": {
+    "th": "สร้างข้อความไว้คัดลอก หรือติดต่อผ่าน GitHub ได้",
+    "en": "Create a message to copy, or get in touch through GitHub.",
+    "zh": "生成可复制的消息，或通过 GitHub 联系。"
   }
 };
