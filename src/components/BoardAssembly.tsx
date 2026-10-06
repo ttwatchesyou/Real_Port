@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import styled from 'styled-components';
+import { Col, Row } from 'antd';
 import { ArrowDownOutlined, ArrowRightOutlined } from '@ant-design/icons';
 import { useLocale } from './LocaleProvider';
 import type { BoardModelHandle } from './BoardModel';
@@ -23,7 +24,7 @@ const Assembly = styled.section`
   .assembly-top{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:26px;}
   .assembly-top .section-label{margin:0;}
   .skip-assembly{font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;align-items:center;gap:9px;padding:8px 0;}
-  .assembly-layout{display:grid;grid-template-columns:.82fr 1.18fr;gap:30px;align-items:center;}
+  .assembly-layout{align-items:center;}
   .assembly-copy{position:relative;z-index:2;}
   .assembly-copy h2{font-size:clamp(34px,3.8vw,54px);line-height:1.12;letter-spacing:-2px;margin:0 0 24px;}
   .assembly-copy h2 em{font-family:var(--font-sans);font-weight:300;font-style:italic;color:var(--muted);}
@@ -49,8 +50,8 @@ const Assembly = styled.section`
   &[data-motion='off']{height:auto;}
   &[data-motion='off'] .assembly-sticky{position:relative;top:0;height:auto;min-height:0;padding-top:65px;padding-bottom:65px;}
   @media(max-width:1100px){.assembly-board{width:82%;left:9%;top:90px;}.assembly-tabs{gap:5px;}.assembly-tabs button{padding:9px 8px;font-size:8px;}}
-  @media(max-width:800px){.assembly-sticky{top:73px;height:calc(100svh - 73px);min-height:600px;}.assembly-layout{grid-template-columns:.9fr 1.1fr;gap:5px;}.assembly-scene{height:390px;}.assembly-board{width:90%;left:4%;top:100px;}.assembly-copy h2{font-size:36px;}.assembly-copy p{font-size:12px;}.layer-legend{top:0;font-size:7px;}.assembly-bottom{font-size:8px;}}
-  @media(max-width:560px){height:310svh;.assembly-sticky{top:68px;height:calc(100svh - 68px);min-height:0;padding-top:20px;padding-bottom:18px;}.assembly-top{margin-bottom:15px;}.assembly-top .section-label{font-size:7px;}.skip-assembly{font-size:8px;}.assembly-layout{display:flex;flex-direction:column;gap:0;}.assembly-copy{width:100%;}.assembly-copy h2{font-size:31px;margin:0 0 13px;letter-spacing:-1.2px;}.assembly-copy h2 br{display:none;}.assembly-copy h2 em{display:block;}.assembly-note{position:absolute;right:0;top:42px;font-size:12px;margin:0;}.stage-note{font-size:8px;margin-bottom:6px;}.assembly-copy h3{font-size:16px;}.assembly-copy p{font-size:11px;line-height:1.8;max-width:290px;min-height:40px;}.assembly-tabs{margin-top:13px;}.assembly-tabs button{font-size:8px;}.assembly-scene{height:clamp(210px,34svh,310px);width:100%;max-width:380px;margin-top:8px;perspective:950px;}.assembly-board{width:76%;left:12%;top:65px;}.assembly-coordinate{bottom:2px;right:0;font-size:7px;}.layer-legend{top:20px;right:0;font-size:6px;gap:5px;}.assembly-bottom{margin-top:7px;font-size:7px;padding-top:13px;}.assembly-bottom span:last-child{display:none;}.assembly-meter{margin-top:12px;} &[data-motion='off'] .assembly-sticky{padding-top:35px;padding-bottom:35px;}}
+  @media(max-width:800px){.assembly-sticky{top:73px;height:calc(100svh - 73px);min-height:600px;}.assembly-scene{height:390px;}.assembly-board{width:90%;left:4%;top:100px;}.assembly-copy h2{font-size:36px;}.assembly-copy p{font-size:12px;}.layer-legend{top:0;font-size:7px;}.assembly-bottom{font-size:8px;}}
+  @media(max-width:560px){height:310svh;.assembly-sticky{top:68px;height:calc(100svh - 68px);min-height:0;padding-top:20px;padding-bottom:18px;}.assembly-top{margin-bottom:15px;}.assembly-top .section-label{font-size:7px;}.skip-assembly{font-size:8px;}.assembly-copy{width:100%;}.assembly-copy h2{font-size:31px;margin:0 0 13px;letter-spacing:-1.2px;}.assembly-copy h2 br{display:none;}.assembly-copy h2 em{display:block;}.assembly-note{position:absolute;right:0;top:42px;font-size:12px;margin:0;}.stage-note{font-size:8px;margin-bottom:6px;}.assembly-copy h3{font-size:16px;}.assembly-copy p{font-size:11px;line-height:1.8;max-width:290px;min-height:40px;}.assembly-tabs{margin-top:13px;}.assembly-tabs button{font-size:8px;}.assembly-scene{height:clamp(210px,34svh,310px);width:100%;max-width:380px;margin-top:8px;perspective:950px;}.assembly-board{width:76%;left:12%;top:65px;}.assembly-coordinate{bottom:2px;right:0;font-size:7px;}.layer-legend{top:20px;right:0;font-size:6px;gap:5px;}.assembly-bottom{margin-top:7px;font-size:7px;padding-top:13px;}.assembly-bottom span:last-child{display:none;}.assembly-meter{margin-top:12px;} &[data-motion='off'] .assembly-sticky{padding-top:35px;padding-bottom:35px;}}
   .assembly-transport{display:flex;align-items:center;gap:10px;margin-top:16px;max-width:380px;}
   .assembly-play{border:1px solid var(--accent);border-radius:4px;background:var(--surface);color:var(--accent);padding:9px 12px;font-size:10px;white-space:nowrap;}
   .assembly-transport input{width:100%;min-width:40px;accent-color:var(--accent);cursor:ew-resize;}
@@ -129,13 +130,13 @@ export default function BoardAssembly({ effects }: { effects: boolean }) {
   return <Assembly id="workbench" ref={section} data-motion={effects ? 'on' : 'off'} data-stage={stage} aria-labelledby="workbench-heading">
     <div className="assembly-sticky wrap">
       <div className="assembly-top"><div className="section-label"><span className="line"/>{t("INTERMISSION / ON MY WORKBENCH")}</div><a className="skip-assembly" href="#projects">{t("Skip to projects")}<ArrowRightOutlined/></a></div>
-      <div className="assembly-layout">
-        <div className="assembly-copy"><span className="assembly-note">{t("a closer look ↘")}</span><h2 id="workbench-heading">{t("Things make sense")}<br/><em>{t("piece by piece.")}</em></h2><div className="stage-note">{t(stages[stage].note)}</div><h3>{t(stages[stage].title)}</h3><p>{t(stages[stage].text)}</p><div className="assembly-tabs" aria-label={t("Board assembly stages")}>{stages.map((item, i) => <button key={t(item.label)} onClick={() => selectStage(i)} aria-pressed={stage === i}><span>0{i + 1}</span>{t(item.label)}</button>)}</div><div className="assembly-transport">{effects&&<button className="assembly-play" onClick={play} aria-pressed={playing}>{t(playing?'Pause demo':'Play assembly')}</button>}<input type="range" min="0" max="100" step="1" aria-label={t('Assembly timeline')} value={Math.round(progress*100)} onChange={e=>{manual.current=true;setPlaying(false);update(Number(e.target.value)/100);}}/><output>{Math.round(progress*100)}%</output></div></div>
-        <div className="assembly-scene" ref={scene} aria-label={t("Interactive ESP32 assembly")}>
+      <Row className="assembly-layout" gutter={24} align="middle">
+        <Col xs={24} md={10}><div className="assembly-copy"><span className="assembly-note">{t("a closer look ↘")}</span><h2 id="workbench-heading">{t("Things make sense")}<br/><em>{t("piece by piece.")}</em></h2><div className="stage-note">{t(stages[stage].note)}</div><h3>{t(stages[stage].title)}</h3><p>{t(stages[stage].text)}</p><div className="assembly-tabs" aria-label={t("Board assembly stages")}>{stages.map((item, i) => <button key={t(item.label)} onClick={() => selectStage(i)} aria-pressed={stage === i}><span>0{i + 1}</span>{t(item.label)}</button>)}</div><div className="assembly-transport">{effects&&<button className="assembly-play" onClick={play} aria-pressed={playing}>{t(playing?'Pause demo':'Play assembly')}</button>}<input type="range" min="0" max="100" step="1" aria-label={t('Assembly timeline')} value={Math.round(progress*100)} onChange={e=>{manual.current=true;setPlaying(false);update(Number(e.target.value)/100);}}/><output>{Math.round(progress*100)}%</output></div></div></Col>
+        <Col xs={24} md={14}><div className="assembly-scene" ref={scene} aria-label={t("Interactive ESP32 assembly")}>
           {loadModel?<BoardModel ref={model} effects={effects}/>:<div className="board-model model-pending" data-renderer="pending" role="status">{t('Preparing the workbench…')}</div>}
           <div className="layer-legend" aria-hidden="true"><span><i/>{t("01 RF SHIELD")}</span><span><i/>{t("02 COMPONENTS")}</span><span><i/>{t("03 PIN HEADERS")}</span><span><i/>{t("04 COPPER TRACES")}</span><span><i/>{t("05 PCB SUBSTRATE")}</span></div>
-        </div>
-      </div>
+        </div></Col>
+      </Row>
       <div className="assembly-bottom"><span><ArrowDownOutlined/>{t(effects ? 'SCROLL TO TAKE IT APART. KEEP GOING TO REBUILD.' : 'MOTION OFF · USE THE BUTTONS TO EXPLORE')}</span><span>{t("ILLUSTRATIVE ASSEMBLY / NOT A PCB SCHEMATIC")}</span></div><div className="assembly-meter" aria-hidden="true"><div className="assembly-meter-fill" data-progress={Math.round(progress*100)}/></div>
     </div>
   </Assembly>;

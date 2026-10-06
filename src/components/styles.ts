@@ -8,6 +8,8 @@ const scan = keyframes`0% {transform:translateY(-100%);opacity:0;} 20%,80% {opac
 const rise = keyframes`from {opacity:0; transform:translateY(22px);} to {opacity:1; transform:translateY(0);}`;
 const blink = keyframes`50% {opacity:0;}`;
 const marquee = keyframes`to {transform:translateX(-50%);}`;
+const beam = keyframes`0% {background-position:0 -120%;} 100% {background-position:0 220%;}`;
+const hudPulse = keyframes`0%,100% {opacity:.38;} 50% {opacity:.85;}`;
 
 export const GlobalStyle = createGlobalStyle`
   :root {--bg:#0b1018;--panel:#12171d;--text:#edf0f2;--muted:#92979b;--accent:#76d9ed;--border:#2b2e33;--font-sans:'Kanit',Arial,sans-serif;--mono:'SFMono-Regular',Consolas,'Liberation Mono',monospace;}
@@ -409,15 +411,60 @@ export const Shell = styled.div`
   .contact-box .primary-button{background:var(--on-action);color:var(--action);border-color:var(--on-action);}
   .contact-box .secondary-button{background:transparent;color:var(--on-action);border-color:color-mix(in srgb,var(--on-action) 45%,transparent);}
   .footer{padding:37px 0;border-top:0;}
+  /* Ant Design's 24-column grid is the layout source of truth. */
+  .hero-main.ant-row,.project-grid.ant-row,.about-grid.ant-row,.skill-grid.ant-row,.role-grid.ant-row{display:flex;gap:0;}
+  .hero-copy-col,.hero-visual-col{position:relative;}
+  .project-grid.ant-row{counter-reset:project;align-items:flex-start;}
+  .project-col{counter-increment:project;}
+  .project-col .project-card{grid-column:auto;width:100%;height:100%;margin-top:0;}
+  .project-col .project-visual{height:250px;}
+  .project-col:nth-child(6n+1) .project-visual,.project-col:nth-child(6n+6) .project-visual{height:300px;}
+  .project-col:nth-child(6n+3) .project-visual,.project-col:nth-child(6n+4) .project-visual{height:205px;}
+  .skill-grid.ant-row{counter-reset:skill;}
+  .skill-grid>.ant-col{display:flex;}
+  .skill-grid .skill-card{width:100%;height:100%;transform:none;}
+  .skill-grid>.ant-col:nth-child(2) .skill-card,.skill-grid>.ant-col:nth-child(4) .skill-card{transform:translateY(38px);}
+  .skill-grid>.ant-col:nth-child(2) .skill-card:hover,.skill-grid>.ant-col:nth-child(4) .skill-card:hover{transform:translateY(31px) rotate(.4deg);}
+  .role-grid>.ant-col{display:flex;}
+  .role-grid .role-card{width:100%;height:100%;border-right:1px solid var(--border);}
+  .role-grid>.ant-col:last-child .role-card{border-right:0;}
+  /* Sci-fi HUD layer: bright edges and readable depth instead of dark, sunken panels. */
+  .nav-inner{border-radius:5px;border-color:color-mix(in srgb,var(--accent) 48%,var(--border));box-shadow:0 0 0 1px color-mix(in srgb,var(--accent) 6%,transparent),0 18px 50px var(--shadow);}
+  .nav-inner::before,.nav-inner::after{content:'';position:absolute;width:12px;height:12px;pointer-events:none;}
+  .nav-inner::before{left:-1px;top:-1px;border-left:2px solid var(--accent);border-top:2px solid var(--accent);}
+  .nav-inner::after{right:-1px;bottom:-1px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);}
+  .hero{box-shadow:inset 0 -80px 100px -100px var(--accent);}
+  .hero::before{background-image:linear-gradient(color-mix(in srgb,var(--accent) 12%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--accent) 12%,transparent) 1px,transparent 1px),radial-gradient(circle at 78% 45%,color-mix(in srgb,var(--accent) 10%,transparent) 0 1px,transparent 1.5px);background-size:44px 44px,44px 44px,9px 9px;}
+  .visual{overflow:hidden;border:1px solid color-mix(in srgb,var(--accent) 48%,var(--border));box-shadow:inset 0 0 70px color-mix(in srgb,var(--accent) 7%,transparent),0 24px 80px var(--shadow);}
+  .visual::after{background:linear-gradient(180deg,transparent 0 46%,color-mix(in srgb,var(--accent) 22%,transparent) 49%,color-mix(in srgb,var(--accent) 65%,transparent) 50%,color-mix(in srgb,var(--accent) 22%,transparent) 51%,transparent 54%);background-size:100% 180%;animation:${beam} 7s linear infinite;}
+  .visual-label{padding:4px 7px;background:color-mix(in srgb,var(--bg) 74%,transparent);border-left:1px solid var(--accent);backdrop-filter:blur(7px);}
+  .technology-strip{transform:none;background:color-mix(in srgb,var(--surface-strong) 88%,var(--bg));border-top:1px solid var(--accent);border-bottom:1px solid color-mix(in srgb,var(--accent) 48%,var(--border));box-shadow:0 0 30px color-mix(in srgb,var(--accent) 10%,transparent);}
+  .technology-group span,.technology-group svg{color:var(--accent);}.technology-group .tech-divider{color:var(--warm);}
+  .section-label{border-color:color-mix(in srgb,var(--accent) 55%,var(--border));box-shadow:inset 12px 0 22px color-mix(in srgb,var(--accent) 8%,transparent),0 0 18px color-mix(in srgb,var(--accent) 7%,transparent);}
+  .section-label .line{box-shadow:0 0 9px var(--accent);animation:${hudPulse} 2.7s ease-in-out infinite;}
+  .project-card{position:relative;border-radius:0;clip-path:polygon(0 0,calc(100% - 25px) 0,100% 25px,100% 100%,0 100%);background:linear-gradient(150deg,color-mix(in srgb,var(--surface-strong) 48%,var(--surface)),var(--surface) 52%);box-shadow:none;}
+  .project-card::before{content:'';position:absolute;z-index:4;right:0;top:24px;width:1px;height:46px;background:var(--accent);box-shadow:0 0 12px var(--accent);pointer-events:none;}
+  .project-card:hover{box-shadow:none;filter:drop-shadow(0 15px 20px var(--shadow));}
+  .project-visual{border-bottom-color:color-mix(in srgb,var(--accent) 35%,var(--border));}
+  .project-body::before{content:'SYS / PROJECT NODE';display:block;margin:-4px 0 15px;color:var(--muted);font:6px var(--mono);letter-spacing:1.4px;}
+  .terminal{border-color:color-mix(in srgb,var(--accent) 50%,var(--border));background:linear-gradient(145deg,var(--bg),color-mix(in srgb,var(--accent) 5%,var(--bg)));box-shadow:14px 17px 0 var(--shadow),0 0 34px color-mix(in srgb,var(--accent) 8%,transparent);}
+  .terminal-title{border-bottom-color:color-mix(in srgb,var(--accent) 42%,var(--border));}
+  .skill-card{clip-path:polygon(0 0,calc(100% - 22px) 0,100% 22px,100% 100%,0 100%);background:linear-gradient(145deg,color-mix(in srgb,var(--accent) 5%,var(--surface)),var(--surface));border-color:color-mix(in srgb,var(--accent) 30%,var(--border));}
+  .role-card{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 4%,var(--surface)),transparent);}
+  .contact-box{border-radius:0;clip-path:polygon(0 0,calc(100% - 38px) 0,100% 38px,100% 100%,38px 100%,0 calc(100% - 38px));border-color:var(--accent);background:linear-gradient(115deg,color-mix(in srgb,var(--accent) 15%,var(--surface)),var(--surface) 62%,color-mix(in srgb,var(--sky-two) 24%,var(--surface)));color:var(--text);box-shadow:none;}
+  .contact-box .eyebrow,.contact-box h2,.contact-box h2 .green,.contact-box p{color:var(--text);}
+  .contact-box .status-dot{background:var(--accent);}.contact-box .primary-button{background:var(--action);color:var(--on-action);border-color:var(--action);}.contact-box .secondary-button{background:var(--bg);color:var(--text);border-color:var(--border);}
+  html[data-color-scheme='dark'] & .project-card,html[data-color-scheme='dark'] & .skill-card{box-shadow:inset 0 0 35px color-mix(in srgb,var(--accent) 4%,transparent);}
+  @media(min-width:1200px){.project-col:nth-child(6n+2){padding-top:48px}.project-col:nth-child(6n+3){padding-top:104px}.project-col:nth-child(6n+5){padding-top:38px}.project-col:nth-child(6n+6){padding-top:82px}}
   @media(max-width:1100px){
     .hero-main{grid-template-columns:1fr 1fr;}.hero h1{font-size:67px;}.hero-copy{padding-left:22px;}.visual{height:500px;}
     .project-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.project-card,.project-card:nth-child(n){grid-column:span 1;margin-top:0;}.project-card:nth-child(even){margin-top:42px;}.project-card:nth-child(n) .project-visual{height:250px;}
   }
   @media(max-width:800px){
-    .nav{padding:8px 0}.nav-inner{height:58px}.hero{min-height:680px}.hero-main{min-height:610px}.hero h1{font-size:52px}.hero-description{font-size:13px}.visual{height:430px}.section{padding-top:82px;padding-bottom:82px}.about-section{background:var(--surface)}.skill-card{padding:28px}.contact-box{padding:43px 37px}
+    .nav{padding:8px 0}.nav-inner{height:58px}.hero{min-height:680px}.hero-main{min-height:610px}.hero h1{font-size:52px}.hero-description{font-size:13px}.visual{height:430px}.section{padding-top:82px;padding-bottom:82px}.about-section{background:var(--surface)}.skill-card{padding:28px}.contact-box{padding:43px 37px}.project-col:nth-child(even){padding-top:32px}.skill-grid>.ant-col:nth-child(2) .skill-card,.skill-grid>.ant-col:nth-child(4) .skill-card{transform:none}.role-grid .role-card{border-right:0;border-bottom:1px solid var(--border)}.role-grid>.ant-col:last-child .role-card{border-bottom:0}
   }
   @media(max-width:560px){
-    &::before{display:none}.wrap{padding-left:20px;padding-right:20px}.nav{padding:7px 0}.nav-inner{height:56px;padding-left:15px;padding-right:8px;border-radius:18px}.nav-links.open{top:calc(100% + 4px);border:1px solid var(--border);margin:0 20px;padding:12px;background:var(--nav);border-radius:10px}.logo svg{width:30px;height:30px}.hero{min-height:0}.hero::after{top:27%;font-size:88px}.hero-main{min-height:0}.hero-copy{padding:54px 0 0 18px}.hero-copy::before{top:58px}.hero-copy::after{top:35px}.hero h1{font-size:clamp(42px,12.3vw,55px);letter-spacing:-.055em}.hero-intro{font-size:12px;margin-bottom:17px}.hero-surname{font-size:23px;margin-top:15px}.hero-description{font-size:13px;line-height:1.8}.hero-actions{align-items:stretch;flex-direction:column;max-width:280px}.primary-button,.secondary-button{width:100%}.visual{height:365px;margin:20px -8px 0;width:calc(100% + 16px)}.technology-strip{transform:rotate(-1deg) scale(1.02)}.section{padding-top:72px;padding-bottom:72px}#projects::before{top:20px;font-size:100px}.section-head p{font-size:12px}.project-grid{grid-template-columns:1fr;gap:25px}.project-card,.project-card:nth-child(n){grid-column:auto;margin-top:0}.project-card:nth-child(n) .project-visual{height:245px}.project-card{border-radius:0 20px 0 0}.about-grid{gap:46px}.about-copy{padding-left:20px}.terminal{transform:none}.skill-grid{grid-template-columns:1fr;gap:18px}.skill-card,.skill-card:nth-child(n){min-height:0;transform:none}.skill-card:nth-child(n):hover{transform:translateY(-4px)}.role-grid{grid-template-columns:1fr}.role-card{min-height:0;border-right:0;border-bottom:1px solid var(--border)}.role-card:last-child{border-bottom:0}.contact-box{padding:37px 25px;border-radius:28px 0 28px 0;box-shadow:9px 9px 0 color-mix(in srgb,var(--border) 60%,transparent)}
+    &::before{display:none}.wrap{padding-left:20px;padding-right:20px}.nav{padding:7px 0}.nav-inner{height:56px;padding-left:15px;padding-right:8px;border-radius:4px}.nav-links.open{top:calc(100% + 4px);border:1px solid var(--border);margin:0 20px;padding:12px;background:var(--nav);border-radius:4px}.logo svg{width:30px;height:30px}.hero{min-height:0}.hero::after{top:27%;font-size:88px}.hero-main{min-height:0}.hero-copy{padding:54px 0 0 18px}.hero-copy::before{top:58px}.hero-copy::after{top:35px}.hero h1{font-size:clamp(42px,12.3vw,55px);letter-spacing:-.055em}.hero-intro{font-size:12px;margin-bottom:17px}.hero-surname{font-size:23px;margin-top:15px}.hero-description{font-size:13px;line-height:1.8}.hero-actions{align-items:stretch;flex-direction:column;max-width:280px}.primary-button,.secondary-button{width:100%}.visual{height:365px;margin:20px -8px 0;width:calc(100% + 16px)}.technology-strip{transform:none}.section{padding-top:72px;padding-bottom:72px}#projects::before{top:20px;font-size:100px}.section-head p{font-size:12px}.project-col{padding-top:0!important}.project-col .project-visual{height:245px}.project-card{border-radius:0}.about-copy{padding-left:20px}.terminal{transform:none}.skill-grid .skill-card{min-height:0;transform:none}.skill-grid .skill-card:hover{transform:translateY(-4px)}.role-card{min-height:0}.contact-box{padding:37px 25px;border-radius:0;box-shadow:none}
   }
   @media(prefers-reduced-motion:reduce) {&[data-ready='true'] .reveal:not(.visible){opacity:1;transform:none;}}
   body[data-effects='off'] &[data-ready='true'] .reveal:not(.visible){opacity:1;transform:none;}
