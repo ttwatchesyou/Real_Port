@@ -12,7 +12,7 @@ let photoCount=0,clipCount=0;
 for(const [slug,media] of Object.entries(workMediaManifest)){
   const requestsBeforeNavigation=videoRequests.length;
   await page.goto(`${base}/work/${slug}`,{waitUntil:'networkidle'});
-  await page.locator('select').selectOption('en');
+  await page.locator('select:has(option[value="en"])').selectOption('en');
   assert.equal(await page.locator('.photo-pending').count(),0);
   assert.equal(await page.locator('video').count(),0);
   assert.equal(await page.locator('.build-photo-button').count(),Math.min(6,media.photos.length));
@@ -94,17 +94,17 @@ await page.waitForFunction(()=>{const v=document.querySelector('video');return v
 await page.getByRole('button',{name:'Close clip',exact:true}).click();
 // Newly added media must fit every language and theme on phone, tablet and desktop.
 for(const locale of ['th','en','zh']){
-  await page.locator('select').selectOption(locale);
+  await page.locator('select:has(option[value="en"])').selectOption(locale);
   assert.doesNotMatch(await page.locator('main').innerText(),/(?:work|media)\.[a-z]/);
   for(const width of [320,390,768,1440]){
     await page.setViewportSize({width,height:900});
     for(const mode of ['dark','light','auto']){
-      await page.locator('.header-tools button').nth(mode==='dark'?0:mode==='light'?1:2).click();
+      await page.locator('select:has(option[value="dark"])').selectOption(mode);
       assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`${locale}/${width}/${mode} overflow`);
     }
   }
 }
-await page.locator('select').selectOption('en');await page.getByRole('button',{name:'Light',exact:true}).click();
+await page.locator('select:has(option[value="en"])').selectOption('en');await page.locator('select:has(option[value="dark"])').selectOption('light');
 await page.setViewportSize({width:1440,height:1000});await page.locator('.project-videos').screenshot({path:'test-results/media-clips-desktop.png'});await page.screenshot({path:'test-results/media-desktop.png',fullPage:true});
 await page.setViewportSize({width:390,height:844});await page.locator('.project-videos').screenshot({path:'test-results/media-clips-mobile.png'});await page.screenshot({path:'test-results/media-mobile.png',fullPage:true});
 assert.deepEqual(errors,[]);

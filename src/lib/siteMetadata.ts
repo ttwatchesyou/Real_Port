@@ -10,7 +10,7 @@ export const siteName = 'Theetawatch — Mechatronics & Robotics Portfolio';
 export const siteDescription = 'พอร์ตของ ธีร์ธวัช ตั้งตระกูลธนะกิจ รวมงานเมคคาทรอนิกส์ หุ่นยนต์ ระบบอัตโนมัติ ไมโครคอนโทรลเลอร์ และบันทึกการทดลอง';
 export const githubUrl = 'https://github.com/ttwatchesyou';
 export const repositoryUrl = 'https://github.com/ttwatchesyou/Real_Port';
-export const socialImagePath = '/images/my-work/competition-news.webp';
+export const socialImagePath = '/images/my-work/hands-on.webp';
 
 export function absoluteUrl(path = '/') {
   return new URL(path, siteUrl).toString();

@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   authors: [{ name: profile.name, url: githubUrl }],
   creator: profile.name,
   alternates: { canonical: '/' },
-  icons: { icon: '/icon.svg' },
+  icons: { icon: [{url:'/favicon.ico',sizes:'any'},{url:'/icon.svg',type:'image/svg+xml'}], apple: '/apple-touch-icon.png' },
   openGraph: {
     type: 'website',
     locale: 'th_TH',
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     siteName,
     title: `${profile.name} — Mechatronics, Robotics & Automation`,
     description: siteDescription,
-    images: [{ url: absoluteUrl(socialImagePath), width: 1327, height: 628, alt: `${profile.name} engineering portfolio` }],
+    images: [{ url: absoluteUrl(socialImagePath), width: 960, height: 1280, alt: `${profile.name} engineering portfolio` }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -35,9 +35,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="th">
     <head>
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
+      <link href="/fonts/fonts.css" rel="stylesheet" />
     </head>
     <body><Registry><AntdRegistry><LocaleProvider><AppearanceProvider>{children}</AppearanceProvider></LocaleProvider></AntdRegistry></Registry></body>
   </html>;

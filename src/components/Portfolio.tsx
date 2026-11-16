@@ -1,191 +1,99 @@
 'use client';
-
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { Button, ConfigProvider, Form, Input, Modal, theme } from 'antd';
 import thTH from 'antd/locale/th_TH';
 import enUS from 'antd/locale/en_US';
 import zhCN from 'antd/locale/zh_CN';
-import { LanguageSwitcher, useLocale } from './LocaleProvider';
-import CircuitPlayground from './CircuitPlayground';
-import WorkPhotos from './WorkPhotos';
-import ProjectPhotos from './ProjectPhotos';
-import WorkIllustration from './work/WorkIllustration';
-import { workStudies } from '@/data/workArchive';
-import AmbientEffects from './AmbientEffects';
-import { Button, Col, ConfigProvider, Form, Input, Modal, Row, theme } from 'antd';
-import { ArrowDownOutlined, ArrowRightOutlined, ArrowUpOutlined, CheckOutlined, CodeOutlined, EnvironmentOutlined, ExperimentOutlined, GithubOutlined, MenuOutlined, CloseOutlined, PlayCircleOutlined, ThunderboltOutlined, WifiOutlined, ApiOutlined, ToolOutlined, ApartmentOutlined, TrophyOutlined, ReadOutlined } from '@ant-design/icons';
-import { Board, Arm, Dashboard, Rover, LogisticsRobot, ControlPanel, CadStudy, PIDPreview } from './Visuals';
-import BoardAssembly from './BoardAssembly';
-import AppearanceSwitcher from './AppearanceSwitcher';
+import { ArrowLeftOutlined, ArrowRightOutlined, SearchOutlined, MenuOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons';
+import { useLocale, LanguageSwitcher } from './LocaleProvider';
 import { useAppearance } from './AppearanceProvider';
-import { usePointerTilt } from '@/hooks/usePointerTilt';
-import { GlobalStyle, Shell, ModalContent } from './styles';
+import AppearanceSwitcher from './AppearanceSwitcher';
+import { PhotoViewer } from './WorkPhotos';
+import ProjectPhotos from './ProjectPhotos';
+import { GlobalStyle, ModalContent } from './styles';
+import { Editorial } from './editorialStyles';
 import { categories, profile, projects, roles, type Category, type Project } from '@/data/portfolio';
+import { personalPhotos, photoCollection, type PersonalPhoto } from '@/data/personalPhotos';
+import { messages } from '@/i18n/messages';
+import { workStudies } from '@/data/workArchive';
 
-function ArrowUpRightOutlined() { return <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M4 12 12 4M4 4h8v8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
-function Mark() { return <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M3 8h15M10.5 8v18M15 5h14M22 5v18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="square"/><circle cx="27" cy="27" r="2" fill="currentColor"/></svg>; }
-function ProjectVisual({ kind, image, studySlug, full = false }: { kind: Project['kind']; image?: Project['image']; studySlug?: string; full?: boolean }) {
-  const {t}=useLocale();
-  const study=studySlug?workStudies.find(s=>s.slug===studySlug):undefined;
-  if(study) return <WorkIllustration visual={study.visual}/>;
-  if(image&&full) return <img src={image.src} srcSet={image.personal?`${image.personal.thumbnail} 480w, ${image.src} ${image.personal.width}w`:undefined} sizes={full?'(max-width:640px) 90vw, 580px':'(max-width:640px) 90vw, (max-width:1000px) 45vw, 33vw'} width={image.personal?.width} height={image.personal?.height} alt={t(image.alt)} loading="lazy" className={`project-photo photo-focus-${image.focus??'center'}`}/>;
-  if(kind==='pid') return <PIDPreview/>;
-  if(kind==='agv') return <LogisticsRobot/>;
-  if(kind==='plc') return <ControlPanel/>;
-  if(kind==='cad') return <CadStudy/>;
-  if(kind==='arm') return <Arm/>;
-  if(kind==='board'||kind==='weather') return <Board/>;
-  if(kind==='rover') return <Rover/>;
-  return <Dashboard code={kind==='code'}/>;
+export function Arrow() { return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 19 19 5M5 5h14v14" stroke="currentColor" strokeWidth="1.5"/></svg>; }
+export function projectPhoto(p:Project):PersonalPhoto|undefined {
+  if(p.studySlug)return workStudies.find(s=>s.slug===p.studySlug)?.photos?.[0];
+  // Each photograph stays with the work it documents. Documents are identified in the caption.
+  return p.image?.personal?.id==='robot-system-design'?undefined:p.image?.personal;
 }
-function ProjectCard({ p, effects, onSelect }: { p: Project; effects: boolean; onSelect: (project: Project) => void }) {
-  const {t}=useLocale();
-  const card=useRef<HTMLElement>(null);
-  usePointerTilt(card,effects,'.project-visual',7);
-  const content=<><div className={`project-visual ${p.kind==='board'||p.kind==='weather'?'board':''}`}><span className="project-number">PRJ_{p.id}</span><span className={`concept-label ${p.status==='CHAMPION'?'award-label':''}`}>{p.status==='CHAMPION'&&<TrophyOutlined/>} {t(p.status)}</span><ProjectVisual kind={p.kind} image={p.image} studySlug={p.studySlug}/><span className="illustration-label">{t("ภาพจำลองเคลื่อนไหว")}</span>{p.image?.personal&&<span className="photo-available">{t('work.photosInside')}</span>}{p.studySlug&&<span className="work-media-available">{t('work.photosInside')}</span>}</div><div className="project-body"><div className="project-category">{t(p.category)}</div><div className="project-title-row"><h3>{t(p.name)}</h3><ArrowUpRightOutlined/></div>{!p.studySlug&&<p className="project-subtitle">{t(p.subtitle)}</p>}<p className="project-note">{t(p.note)}</p><div className="tags">{p.tags.map(tag=><span className="tag" key={t(tag)}>{t(tag)}</span>)}</div></div></>;
-  return p.href?<Link className="project-card" ref={el=>{card.current=el;}} href={p.href} aria-label={`${t("View")} ${t(p.subtitle)}`}>{content}</Link>:<button className="project-card" ref={el=>{card.current=el;}} onClick={()=>onSelect(p)} aria-label={`${t("View")} ${t(p.subtitle)}`}>{content}</button>;
-}
-const techs = [{name:'Mitsubishi FX5U',icon:<ApartmentOutlined/>},{name:'CAD / Simulation',icon:<ToolOutlined/>},{name:'Arduino UNO R4',icon:<ApiOutlined/>},{name:'ESP32',icon:<WifiOutlined/>},{name:'ESP8266',icon:<ThunderboltOutlined/>},{name:'STM32',icon:<ApartmentOutlined/>},{name:'C / C++',icon:<CodeOutlined/>},{name:'Python',icon:<CodeOutlined/>},{name:'Next.js',icon:<ArrowUpRightOutlined/>},{name:'ROS',icon:<ApartmentOutlined/>}];
-const logMessages = ['Serial port opened at 115200 baud','Controller ready / I/O checked','Sensor input received / output enabled','Demo complete. Back to the workbench.'];
-
-export default function Portfolio() {
-  const {t,locale}=useLocale();
-  const { mode, palette, time } = useAppearance();
-  const [category,setCategory]=useState<Category>('All projects');
-  const [showAll,setShowAll]=useState(false);
-  const [selected,setSelected]=useState<Project|null>(null);
-  const [contactOpen,setContactOpen]=useState(false);
-  const [menuOpen,setMenuOpen]=useState(false);
-  const [active,setActive]=useState('home');
-  const [effects,setEffects]=useState(true);
-  const heroVisual=useRef<HTMLDivElement>(null);
-  usePointerTilt(heroVisual, effects, '.board-response', 10);
-  const [ready,setReady]=useState(false);
-  const [logCount,setLogCount]=useState(4);
-  const [running,setRunning]=useState(false);
-  const [draft,setDraft]=useState('');
-  const [copied,setCopied]=useState(false);
+const heroPhotos=[personalPhotos.handsOn,personalPhotos.workbench,personalPhotos.fieldTest];
+const displayPhotos=photoCollection.filter(p=>p.id!=='robot-system-design');
+const journalPhotos=displayPhotos.filter(p=>p.kind==='photo');
+const featured=['three-wheel-omni-robot','three-phase-board','pid-motor-trainer','bottle-filling-conveyor','smart-water-pump','allen-bradley-training-station'];
+const initialProjects=[...featured.flatMap(slug=>projects.filter(p=>p.studySlug===slug)),...projects.filter(p=>p.kind!=='pid'&&!featured.includes(p.studySlug??''))];
+const skillGroups=[
+  {name:'Robotics & automation',tools:'Mitsubishi FX5U · ROS · Robot control · Sensors & actuators'},
+  {name:'Embedded & electronics',tools:'Arduino UNO R4 · ESP32 · STM32 · Motor control'},
+  {name:'Design & simulation',tools:'CAD · SolidWorks · Simulation · Prototyping'},
+  {name:'Programming & analysis',tools:'C / C++ · Python · Hardware programming · Technical documentation'},
+];
+export default function Portfolio(){
+  const {t,locale}=useLocale(),{palette}=useAppearance();
+  const [category,setCategory]=useState<Category>('All projects'),[query,setQuery]=useState(''),[showAll,setShowAll]=useState(false);
+  const [menu,setMenu]=useState(false),[selected,setSelected]=useState<Project|null>(null),[hero,setHero]=useState(0),[viewer,setViewer]=useState<number|null>(null);
+  const [effects,setEffects]=useState(true),[draft,setDraft]=useState(''),[copied,setCopied]=useState(false),[copyError,setCopyError]=useState(false);
+  const swiped=useRef(false);
+  const rail=useRef<HTMLDivElement>(null),gesture=useRef<{x:number;y:number}|null>(null);
   const [form]=Form.useForm();
-  const root=useRef<HTMLDivElement>(null);
-
   useEffect(()=>{
-    const motionQuery=window.matchMedia('(prefers-reduced-motion: reduce)');
-    const updateMotion=()=>{let preference: string | null=null;try{preference=localStorage.getItem('nexus-effects');}catch{}setEffects(!motionQuery.matches && preference!=='off');};
-    updateMotion();
-    motionQuery.addEventListener('change',updateMotion);
-    setReady(true);
-    const revealObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('visible');revealObserver.unobserve(entry.target);}});},{threshold:.08});
-    root.current?.querySelectorAll('.reveal').forEach(el=>revealObserver.observe(el));
-    const sectionObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{if(entry.isIntersecting) setActive(entry.target.id);});},{rootMargin:'-15% 0px -55% 0px',threshold:0});
-    root.current?.querySelectorAll('section[id]').forEach(el=>sectionObserver.observe(el));
-    return ()=>{revealObserver.disconnect();sectionObserver.disconnect();motionQuery.removeEventListener('change',updateMotion);};
+    const media=matchMedia('(prefers-reduced-motion: reduce)');
+    const update=()=>{let saved='';try{saved=localStorage.getItem('nexus-effects')??'';}catch{}setEffects(!media.matches&&saved!=='off');};
+    update();media.addEventListener('change',update);return()=>{media.removeEventListener('change',update);delete document.body.dataset.effects;};
   },[]);
   useEffect(()=>{document.body.dataset.effects=effects?'on':'off';},[effects]);
-  useEffect(()=>{
-    if(!running) return;
-    const timer=setInterval(()=>setLogCount(count=>{if(count>=3){setRunning(false);return 4;}return count+1;}),650);
-    return ()=>clearInterval(timer);
-  },[running]);
-  useEffect(()=>{if(!menuOpen)return;const onKey=(e:KeyboardEvent)=>{if(e.key==='Escape')setMenuOpen(false);};window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey);},[menuOpen]);
-
-  const filtered=projects.filter(p=>category==='All projects'||p.category===category);
-  const visible=showAll||category!=='All projects'?filtered:filtered.slice(0,3);
-  const toggleEffects=()=>{const next=!effects && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;setEffects(next);try{localStorage.setItem('nexus-effects',next?'on':'off');}catch{}};
-  const submitContact=(values:{name:string;email:string;message:string})=>{
-    const text=`${t("Your name / ชื่อ")}: ${values.name}\n${t("Email / อีเมล")}: ${values.email}\n\n${values.message}`;
-    setDraft(text);
-    setCopied(false);
-    if(profile.email) window.location.href=`mailto:${profile.email}?subject=${encodeURIComponent('New project inquiry — '+values.name)}&body=${encodeURIComponent(text)}`;
+  const filtered=initialProjects.filter(p=>(category==='All projects'||p.category===category)&&query.trim().toLowerCase().split(/\s+/).every(word=>[p.name,p.subtitle,p.description,p.note,p.category,...p.tags].flatMap(value=>[value,t(value),...Object.values(messages[value]??{})]).join(' ').toLowerCase().includes(word)));
+  const visible=showAll||query.trim()||category!=='All projects'?filtered:filtered.slice(0,6);
+  const changeHero=(n:number)=>setHero(v=>(v+n+heroPhotos.length)%heroPhotos.length);
+  const openHero=()=>{if(swiped.current){swiped.current=false;return;}setViewer(displayPhotos.findIndex(p=>p.id===heroPhotos[hero].id));};
+  const submit=(values:{name:string;email:string;message:string})=>{
+    const text=`${t('Your name / ชื่อ')}: ${values.name.trim()}\n${t('Email / อีเมล')}: ${values.email.trim()}\n\n${values.message.trim()}`;
+    setDraft(text);setCopied(false);setCopyError(false);
+    if(profile.email)window.location.href=`mailto:${profile.email}?subject=${encodeURIComponent('Portfolio inquiry — '+values.name)}&body=${encodeURIComponent(text)}`;
   };
-
-  return <ConfigProvider locale={locale==='th'?thTH:locale==='zh'?zhCN:enUS} theme={{algorithm:palette.isDark?theme.darkAlgorithm:theme.defaultAlgorithm,token:{colorPrimary:palette.accent,colorBgElevated:palette.surface,colorBgContainer:palette.bg,colorText:palette.text,colorTextSecondary:palette.muted,colorBorder:palette.border,borderRadius:5,fontFamily:'Kanit, Arial, sans-serif'},components:{Button:{primaryColor:palette.onAction,colorPrimary:palette.action,colorPrimaryHover:palette.action}}}}>
-    <GlobalStyle/>
-    <Shell ref={root} data-ready={ready}>
-      <AmbientEffects effects={effects}/>
-      <a className="skip-link" href="#main">{t("Skip to content")}</a>
-      <header className="nav">
-        <div className="wrap nav-inner">
-          <a className="logo" href="#home" aria-label={t("Theetawatch home")}><Mark/><span>theetawatch<span>.</span></span></a>
-          <nav className={`nav-links ${menuOpen?'open':''}`} id="main-navigation" aria-label={t("Main navigation")}>
-            {[['home','Home'],['workbench','Workbench'],['projects','Projects'],['about','About'],['stack','Tech stack']].map(([id,label])=><a key={id} href={`#${id}`} className={`nav-link ${active===id?'active':''}`} aria-current={active===id?'location':undefined} onClick={()=>{setActive(id);setMenuOpen(false);}}>{t(label)}</a>)}
-          </nav>
-          <div className="nav-tools"><AppearanceSwitcher/><LanguageSwitcher/><button className="nav-contact" onClick={()=>setContactOpen(true)}>{t("Let’s talk")}<ArrowUpRightOutlined/></button>
-          <button className="menu-toggle" aria-label={t(menuOpen?'Close navigation':'Open navigation')} aria-expanded={menuOpen} aria-controls="main-navigation" onClick={()=>setMenuOpen(!menuOpen)}>{menuOpen?<CloseOutlined/>:<MenuOutlined/>}</button></div>
-        </div>
-      </header>
-
+  const reset=()=>{setCategory('All projects');setQuery('');setShowAll(false);};
+  return <ConfigProvider locale={locale==='th'?thTH:locale==='zh'?zhCN:enUS} theme={{algorithm:palette.isDark?theme.darkAlgorithm:theme.defaultAlgorithm,token:{colorPrimary:palette.action,colorBgContainer:palette.bg,colorBgElevated:palette.surface,colorText:palette.text,colorTextSecondary:palette.muted,colorBorder:palette.border,borderRadius:0,fontFamily:'Inter, "IBM Plex Sans Thai", sans-serif'}}}>
+    <GlobalStyle/><Editorial>
+      <a className="skip-link" href="#main">{t('Skip to content')}</a>
+      <header className="masthead"><div className="wrap nav-inner"><a className="brand" href="#home" aria-label={t('Theetawatch home')}><span className="brand-mark" aria-hidden="true">tt</span><span>theetawatch</span></a>
+        <nav id="main-navigation" className={`nav-links ${menu?'open':''}`} aria-label={t('Main navigation')}>{[['projects','ed.work'],['about','About'],['journal','ed.journal'],['contact','ed.contact']].map(([id,label])=><a key={id} href={`#${id}`} onClick={()=>setMenu(false)}>{t(label)}</a>)}<Link href="/work" onClick={()=>setMenu(false)}>{t('ed.archive')}</Link></nav>
+        <div className="nav-tools"><LanguageSwitcher/><a className="text-link nav-contact" href="#contact">{t('Let’s talk')}<Arrow/></a><button className="menu-toggle" aria-label={t(menu?'Close navigation':'Open navigation')} aria-expanded={menu} aria-controls="main-navigation" onClick={()=>setMenu(v=>!v)}>{menu?<CloseOutlined/>:<MenuOutlined/>}</button></div>
+      </div></header>
       <main id="main">
-        <section className="hero" id="home" aria-labelledby="hero-heading">
-          <div className="wrap">
-            <Row className="hero-main" gutter={24} align="middle">
-              <Col xs={24} md={12} lg={11} className="hero-copy-col"><div className="hero-copy">
-                <div className="eyebrow"><span className="status-dot"/>{t("MECHATRONICS / ROBOTICS / AUTOMATION")}</div>
-                <h1 id="hero-heading"><span className="hero-intro">{t("Hi, I’m")}</span><span className="hero-name">{profile.firstName}<span className="green">.</span></span><span className="hero-surname">{profile.lastName}</span></h1><p className="hero-thai-name">{profile.thaiName}</p>
-                <p className="hero-description">{t("ผมทำหุ่นยนต์และระบบอัตโนมัติ ตั้งแต่ออกแบบกลไก")}<br/>{t("ต่อวงจร ไปจนถึงเขียนโค้ดให้มันทำงานจริง")}<br/>{t("ที่นี่รวมงานแข่งขัน งานทดลอง และสิ่งที่ผมได้เรียนรู้")}</p>
-                <a className="achievement-note" href="#projects"><TrophyOutlined/><span>{t("รางวัลชนะเลิศหุ่นยนต์ระดับชาติ")}<small>{t("NATIONAL ROBOTICS CHAMPION")}</small></span><ArrowUpRightOutlined/></a><div className="hero-actions"><a className="primary-button" href="#projects">{t("ดูโปรเจกต์")}<ArrowUpRightOutlined/></a><a className="secondary-button" href="#workbench">{t("ลองรื้อบอร์ดดู")}<ArrowRightOutlined/></a></div>
-                <div className="hero-footnote"><span className="handwritten">{t("built, tested, and still learning.")}</span><span className="footnote-arrow">↗</span></div>
-              </div></Col>
-              <Col xs={24} md={12} lg={13} className="hero-visual-col"><div className="visual" ref={heroVisual}>
-                <div className="orbit" aria-hidden="true"/>
-                <div className="visual-label top">{t("ON THE DESK / EXPERIMENT 001")}</div>
-                <div className="board-response"><div className="board-float"><Board hero/></div></div>
-                <div className="visual-label right"><strong>{t("ESP32-WROOM")}</strong><span>{t("DUAL-CORE · 240 MHz")}</span></div>
-                <div className="visual-label left">{t("NOT TO SCALE.")}<br/>{t("JUST HERE TO TINKER.")}</div>
-                <div className="axis" aria-hidden="true"><svg viewBox="0 0 55 45"><path d="M20 28V5m0 23L2 37m18-9 22 9" fill="none" stroke="currentColor"/><text x="24" y="10" fill="currentColor" fontSize="7">Z</text><text x="43" y="40" fill="currentColor" fontSize="7">X</text><text x="0" y="43" fill="currentColor" fontSize="7">Y</text></svg></div>
-                <div className="visual-label bottom"><span className="status-dot"/>{t("VIRTUAL WORKBENCH")}<span className="muted">/ REV. 02</span></div>
-              </div></Col>
-            </Row>
-            <div className="hero-bottom"><div className="hero-bottom-left mono local-light"><span className="status-dot"/><span>{t(mode==='auto'?'LIVE LIGHT':mode==='dark'?'MIDNIGHT':'PASTEL CREAM')} <span className="light-time">{time}</span><span className="light-phase"> / {t(palette.phaseLabel)}</span></span></div><a className="scroll-cue mono" href="#workbench">{t("SCROLL TO TAKE A LOOK")}<ArrowDownOutlined/></a></div>
+        <section className="intro wrap" id="home" aria-labelledby="hero-heading"><div className="intro-meta"><span>PORTFOLIO / MECHATRONICS & ROBOTICS</span><span>{t('ed.personal')}</span></div><div className="wordmark" aria-hidden="true">THEETAWATCH</div>
+          <div className="hero-grid"><div className="hero-copy"><h1 id="hero-heading">{t('ed.hero')}</h1><p>{t('ed.lead')}</p><div className="hero-links"><a className="action" href="#projects">{t('ดูโปรเจกต์')}<Arrow/></a><a className="text-link" href="#about">{t('ed.me')}<ArrowRightOutlined/></a></div><a className="hero-credit" href="#projects">{t('รางวัลชนะเลิศหุ่นยนต์ระดับชาติ')}<small>{t('ed.credit')}</small></a></div>
+            <figure className="carousel" aria-roledescription={t('ed.carousel')} aria-label={t('ed.labPhotos')}><div className="carousel-window" onPointerDown={e=>{swiped.current=false;gesture.current={x:e.clientX,y:e.clientY};}} onPointerUp={e=>{const g=gesture.current;gesture.current=null;if(g&&Math.abs(e.clientX-g.x)>60&&Math.abs(e.clientX-g.x)>Math.abs(e.clientY-g.y)*1.2){swiped.current=true;changeHero(e.clientX<g.x?1:-1);}}} onPointerCancel={()=>{gesture.current=null;}}><button onClick={openHero} aria-label={`${t('photo.open')}: ${t(heroPhotos[hero].title)}`}><img key={heroPhotos[hero].id} src={heroPhotos[hero].src} width={heroPhotos[hero].width} height={heroPhotos[hero].height} alt={t(heroPhotos[hero].alt)} fetchPriority="high" draggable={false}/></button></div><figcaption className="carousel-caption"><span className="caption-copy" aria-live="polite">{t(heroPhotos[hero].title)}<br/>{t('ed.originalPhotos')}</span><div className="carousel-controls"><button aria-label={t('photo.previous')} onClick={()=>changeHero(-1)}><ArrowLeftOutlined/></button><span>{String(hero+1).padStart(2,'0')} / 03</span><button aria-label={t('photo.next')} onClick={()=>changeHero(1)}><ArrowRightOutlined/></button></div></figcaption></figure>
           </div>
         </section>
-
-        <div className="technology-strip" aria-label={t("Arduino, ESP32, ESP8266, STM32, C++, Python, Next.js, ROS 2")}>
-          <div className="technology-track" aria-hidden="true">{[0,1].map(n=><div className="technology-group" key={n}>{techs.map(t=><span key={t.name}>{t.icon}{t.name}<span className="tech-divider">✦</span></span>)}</div>)}</div>
-        </div>
-
-        <BoardAssembly effects={effects}/>
-        <CircuitPlayground effects={effects}/>
-
-        <section className="section wrap" id="projects" aria-labelledby="projects-heading">
-          <div className="reveal"><div className="section-label"><span className="line"/>{t("01 / PROJECT NOTEBOOK")}</div><div className="section-head"><h2 id="projects-heading">{t("Some things")}<br/><span className="muted">{t("on my workbench.")}</span></h2><p>{t("งานแข่งขัน ระบบควบคุม และการทดลอง")}<br/>{t("แต่ละชิ้นมีโจทย์และสิ่งที่ได้เรียนรู้ต่างกัน")}</p></div></div>
-          <div className="filters" aria-label={t("Filter projects")}>{categories.map(c=><button key={c} className={`filter ${category===c?'selected':''}`} aria-pressed={category===c} onClick={()=>{setCategory(c);setShowAll(false);}}>{t(c)}{c==='All projects'&&<small>{String(projects.length).padStart(2,'0')}</small>}</button>)}<span className="filter-count" aria-live="polite">{String(filtered.length).padStart(2,'0')}{t("PROJECTS & PRACTICE")}</span></div>
-          <Link className="notebook-feature" href="/work"><span><strong>{t('work.feature')}</strong><small>{t('work.featureNote')}</small></span><ArrowRightOutlined/></Link>
-          <Row className="project-grid" gutter={[24,30]}>{visible.map((p,index)=><Col className="project-col" xs={24} md={12} xl={[10,8,6,6,8,10][index%6]} key={p.id}><ProjectCard p={p} effects={effects} onSelect={setSelected}/></Col>)}</Row>
-          {category==='All projects'&&<div className="projects-footer"><span className="rule"/><button onClick={()=>setShowAll(!showAll)}>{showAll?t('Show selected projects'):t('View all projects').replace('{count}',String(projects.length))}{showAll?<ArrowUpOutlined/>:<ArrowRightOutlined/>}</button><span className="rule"/></div>}
+        <section className="section wrap" id="projects" aria-labelledby="projects-heading"><div className="section-top"><div><div className="section-label">01 / {t('ed.work')}</div><h2 id="projects-heading">{t('ed.selected')}</h2></div><p>{t('ed.workIntro')}</p></div>
+          <div className="browse-bar"><label className="search-field"><SearchOutlined aria-hidden="true"/><input type="search" aria-label={t('work.search')} placeholder={t('work.search')} value={query} onChange={e=>{setQuery(e.target.value);setShowAll(true);}}/>{query&&<button aria-label={t('ed.clearSearch')} onClick={()=>setQuery('')}><CloseOutlined/></button>}</label><span className="result-count" role="status">{filtered.length} / {initialProjects.length} {t('ed.projects')}</span></div>
+          <div className="filters" role="group" aria-label={t('Filter projects')}>{categories.map(c=><button className="filter" key={c} aria-pressed={c===category} onClick={()=>{setCategory(c);setShowAll(false);}}>{t(c)}</button>)}</div>
+          <div className="project-grid">{visible.map(p=>{const photo=projectPhoto(p);const content=<><div className={`project-image ${!photo?'no-photo':photo.kind==='document'?'is-document':''}`}>{photo?<img src={photo.src} srcSet={`${photo.thumbnail} 480w, ${photo.src} ${photo.width}w`} sizes="(max-width:760px) 100vw, 50vw" width={photo.width} height={photo.height} alt={t(photo.alt)} loading="lazy"/>:<span>{t(p.name)}</span>}</div><div className="project-info"><div className="project-kicker"><span>{t(p.category)}</span><span>{photo?.kind==='document'?t('album.document'):t(p.status)}</span></div><div className="project-title"><h3>{t(p.name)}</h3><Arrow/></div><p>{t(p.note)}</p><div className="project-tags">{p.tags.map(tag=><span key={tag}>{t(tag)}</span>)}</div></div></>;return p.href?<Link className="project-card" href={p.href} key={p.id}>{content}</Link>:<button className="project-card" key={p.id} onClick={()=>setSelected(p)}>{content}</button>;})}</div>
+          {!filtered.length&&<div className="empty"><p>{t('work.noResults')}</p><Button onClick={reset}>{t('work.clear')}</Button></div>}
+          <div className="projects-footer">{filtered.length>6&&category==='All projects'&&!query?<button className="plain-button text-link" aria-expanded={showAll} onClick={()=>setShowAll(v=>!v)}>{t(showAll?'Show selected projects':'ed.allProjects')} ({filtered.length})<ArrowRightOutlined/></button>:<span className="result-count">{visible.length} {t('ed.projects')}</span>}<Link className="text-link" href="/work">{t('ed.archive')} · 12<Arrow/></Link></div>
         </section>
-
-        <WorkPhotos effects={effects}/>
-
-        <section className="about-section" id="about" aria-labelledby="about-heading"><div className="wrap section"><Row className="about-grid" gutter={[32,46]} align="middle">
-          <Col xs={24} md={12} lg={11}><div className="about-copy reveal"><div className="section-label"><span className="line"/>{t("02 / A BIT ABOUT ME")}</div><h2 id="about-heading">{t("Hello again.")}<br/><span className="muted">{t("ผมธีร์ธวัชครับ")}</span></h2><p>{t(profile.about)}</p><p>{t(profile.approach)}</p><p className="about-signature">{profile.firstName} <span> / {profile.thaiName}</span></p><div className="about-meta">{profile.location&&<span><EnvironmentOutlined/>{profile.location}</span>}<span><ExperimentOutlined/>{t("Hardware, software & the bits between.")}</span></div></div></Col>
-          <Col xs={24} md={12} lg={13}><div className="terminal reveal"><div className="terminal-title"><span className="terminal-dots"><i/><i/><i/></span><span>theetawatch@workbench: ~</span><CodeOutlined/></div><div className="terminal-body" aria-live="polite" aria-atomic="true"><p className="command"><span className="green">➜</span> ~ python workbench_demo.py</p>{logMessages.slice(0,logCount).map((line,i)=><p key={t(line)}><span className="ok">[ OK ]</span>{i===3?<span className="green">{t(line)}</span>:t(line)}</p>)}{!running&&<p className="prompt">➜ ~ <span className="cursor"/></p>}</div><button className="terminal-run" onClick={()=>{setLogCount(0);setRunning(true);}} disabled={running}><span>{t(running?'Initializing…':'Run initialization sequence')}</span><PlayCircleOutlined/></button></div></Col>
-        </Row></div></section>
-
-        <section className="wrap section" id="stack" aria-labelledby="stack-heading"><div className="reveal"><div className="section-label"><span className="line"/>{t("03 / TOOLS & INTERESTS")}</div><div className="section-head"><h2 id="stack-heading">{t("Code, components,")}<br/><span className="muted">{t("and a few tools.")}</span></h2><p>{t("ฝั่งฮาร์ดแวร์ ซอฟต์แวร์ และสิ่งที่เชื่อมทั้งสองเข้าด้วยกัน")}<br/>{t("เลือกใช้ให้เหมาะกับงานแต่ละชิ้น")}</p></div></div><Row className="skill-grid" gutter={[24,24]}>
-          {[{icon:<ApartmentOutlined/>,name:'Robotics & automation',description:'เขียนโปรแกรมควบคุม ออกแบบกลไก และทดสอบระบบอัตโนมัติ',tags:['Mitsubishi FX5U','ROS','Robot control','Sensors & actuators']},{icon:<ThunderboltOutlined/>,name:'Embedded & electronics',description:'ลงมือประกอบวงจรและเชื่อมไมโครคอนโทรลเลอร์กับอุปกรณ์',tags:['Arduino UNO R4','ESP32','Sensor integration','Motor control']},{icon:<ToolOutlined/>,name:'Design & simulation',description:'ออกแบบชิ้นส่วนและตรวจสอบการทำงานก่อนประกอบจริง',tags:['CAD','Simulation','Mechanical design','Prototyping']},{icon:<CodeOutlined/>,name:'Programming & analysis',description:'เขียนโค้ดควบคุมฮาร์ดแวร์ ใช้ Gemini และ Claude ช่วยวิเคราะห์โค้ด แล้วตรวจสอบกับระบบจริง',tags:['Hardware programming','Debugging','Gemini / Claude','Technical documentation']}].map(skill=><Col xs={24} md={12} key={skill.name}><div className="skill-card reveal"><div className="skill-icon">{skill.icon}</div><h3>{t(skill.name)}</h3><p>{t(skill.description)}</p><div className="tags">{skill.tags.map(tag=><span className="tag" key={tag}>{t(tag)}</span>)}</div></div></Col>)}
-        </Row></section>
-
-        <section className="experience-section" id="experience" aria-labelledby="experience-heading"><div className="wrap section"><div className="section-label"><span className="line"/>{t("04 / BEYOND THE WORKBENCH")}</div><div className="section-head"><h2 id="experience-heading">{t("ทำเอง แล้วส่งต่อ")}<br/><span className="muted">{t("ให้คนอื่นลองทำด้วย")}</span></h2><p>{t("อีกด้านของงาน คือการอธิบายสิ่งที่ทำ")}<br/>{t("และมีส่วนร่วมกับคนรอบตัว")}</p></div><Row className="role-grid">{roles.map(item=><Col xs={24} md={8} key={item.number}><article className="role-card reveal"><div className="role-number">{item.number}<ReadOutlined/></div><span className="role-label">{t(item.label)}</span><h3>{t(item.title)}</h3><p>{t(item.description)}</p></article></Col>)}</Row><div className="opportunity-note"><EnvironmentOutlined/><span>{t("สนใจโอกาสด้านเมคคาทรอนิกส์ หุ่นยนต์ และระบบอัตโนมัติในพื้นที่ระยอง")}</span><ArrowUpRightOutlined/></div></div></section>
-
-        <section className="wrap contact-section" id="contact" aria-labelledby="contact-heading"><div className="contact-box reveal"><div><div className="eyebrow"><span className="status-dot"/>{t("DROP ME A NOTE")}</div><h2 id="contact-heading">{t("มีเรื่องอยากคุย")}<span className="green">{t("ทักมาได้ครับ")}</span></h2><p>{t("เรื่องโปรเจกต์ โค้ด หรือบอร์ดที่กำลังลองเล่นอยู่")}<br/>{t(profile.email?"ฝากข้อความไว้ได้เลย":"สร้างข้อความไว้คัดลอก หรือติดต่อผ่าน GitHub ได้")}</p></div><div className="contact-actions"><button className="primary-button" onClick={()=>setContactOpen(true)}>{t("เขียนข้อความ")}<ArrowUpRightOutlined/></button><a className="secondary-button" href={profile.github} target="_blank" rel="noreferrer"><GithubOutlined/>{t('GitHub profile')}</a></div></div></section>
+        <section className="section wrap" id="about" aria-labelledby="about-heading"><div className="about-grid"><figure className="portrait"><img src={personalPhotos.handsOn.src} width={960} height={1280} alt={t(personalPhotos.handsOn.alt)} loading="lazy"/><figcaption>{t('ed.portrait')}</figcaption></figure><div className="about-copy"><div className="section-label">02 / {t('About')}</div><h2 id="about-heading">{t('ed.aboutTitle')}</h2><p>{t(profile.about)}</p><p>{t(profile.approach)}</p><div className="about-name">{profile.thaiName}<small>{profile.name}</small></div><div className="skills">{skillGroups.map((skill,i)=><div className="skill-row" key={skill.name}><span>0{i+1}</span><h3>{t(skill.name)}</h3><p>{skill.tools}</p></div>)}</div></div></div></section>
+        <section className="section wrap" id="journal" aria-labelledby="journal-heading"><div className="journal-heading"><div><div className="section-label">03 / {t('ed.journal')}</div><h2 id="journal-heading">{t('ed.journalTitle')}</h2></div><div className="journal-tools"><button className="round-control" aria-label={t('photo.previous')} onClick={()=>rail.current?.scrollBy({left:-(rail.current.clientWidth*.7),behavior:effects?'smooth':'instant'})}><ArrowLeftOutlined/></button><button className="round-control" aria-label={t('photo.next')} onClick={()=>rail.current?.scrollBy({left:rail.current.clientWidth*.7,behavior:effects?'smooth':'instant'})}><ArrowRightOutlined/></button></div></div><div className="journal-rail" ref={rail} tabIndex={0} role="region" aria-label={t('ed.labPhotos')}>{journalPhotos.map((photo,i)=><button className="journal-item" key={photo.id} onClick={()=>setViewer(displayPhotos.findIndex(p=>p.id===photo.id))} aria-label={`${t('photo.open')}: ${t(photo.title)}`}><img src={photo.thumbnail} srcSet={`${photo.thumbnail} 480w, ${photo.src} ${photo.width}w`} sizes="(max-width:760px) 80vw, 30vw" width={photo.width} height={photo.height} alt={t(photo.alt)} loading="lazy"/><span>{t(photo.title)}</span><small>{String(i+1).padStart(2,'0')} / {t('ed.originalPhotos')}</small></button>)}</div></section>
+        <section className="section wrap" aria-labelledby="experience-heading"><div className="section-label">04 / {t('ed.beyond')}</div><h2 id="experience-heading">{t('ทำเอง แล้วส่งต่อ')}</h2><div className="role-grid">{roles.map(item=><article key={item.number}><small>{item.number} / {t(item.label)}</small><h3>{t(item.title)}</h3><p>{t(item.description)}</p></article>)}</div><div className="projects-footer"><span className="result-count">{t('ed.labIntro')}</span><Link className="text-link" href="/pid-lab">PID Lab<Arrow/></Link></div></section>
+        <section className="section contact wrap" id="contact" aria-labelledby="contact-heading"><div className="contact-grid"><div><div className="section-label">05 / {t('ed.contact')}</div><h2 id="contact-heading">{t('ed.contactTitle')}</h2><p>{t('ed.contactIntro')}</p><a className="text-link" href={profile.github} target="_blank" rel="noreferrer">GitHub / ttwatchesyou<Arrow/></a><p className="form-note">{t(profile.email?'เปิดแอปอีเมลของคุณพร้อมข้อความที่กรอก คุณตรวจสอบก่อนส่งได้':'ed.contactNote')}</p></div><div><Form form={form} className="contact-form" layout="vertical" onFinish={submit} requiredMark={false}>
+          <Form.Item label={t('Your name / ชื่อ')} name="name" rules={[{required:true,whitespace:true,message:t('กรุณาระบุชื่อ')}]}><Input autoComplete="name" maxLength={100}/></Form.Item>
+          <Form.Item label={t('Email / อีเมล')} name="email" rules={[{required:true,message:t('กรุณาระบุอีเมล')},{type:'email',message:t('กรุณาตรวจสอบรูปแบบอีเมล')}]}><Input autoComplete="email" type="email" maxLength={254}/></Form.Item>
+          <Form.Item label={t('Your idea / ไอเดียของคุณ')} name="message" rules={[{required:true,whitespace:true,message:t('เล่าไอเดียของคุณสักนิด')}]}><Input.TextArea rows={4} maxLength={3000}/></Form.Item><Button htmlType="submit" type="primary" block>{t(profile.email?'Open email draft':'Create message draft')} <Arrow/></Button></Form>
+          {draft&&<div role="status"><pre className="draft-result">{draft}</pre><Button icon={copied?<CheckOutlined/>:undefined} onClick={async()=>{try{await navigator.clipboard.writeText(draft);setCopied(true);setCopyError(false);}catch{setCopyError(true);}}}>{t(copied?'Copied':'Copy message')}</Button>{copyError&&<p>{t('ed.copyError')}</p>}</div>}
+        </div></div></section>
       </main>
-      <footer className="footer"><div className="wrap footer-inner"><a className="logo" href="#home" aria-label={t("Theetawatch back to top")}><Mark/><span>theetawatch<span>.</span></span></a><span className="footer-note"><span className="theme-explanation">{t(mode==='auto'?'แสงเปลี่ยนตามเวลาเครื่อง · ช่วงเช้า–เย็นโดยประมาณ':mode==='light'?'ครีมพาสเทล / PASTEL CREAM':'โหมดมืด / MIDNIGHT')}</span>© {new Date().getFullYear()} {profile.name}{t("· PERSONAL PORTFOLIO")}</span><a className="footer-social" href={profile.github} target="_blank" rel="noreferrer" aria-label={t('GitHub profile')}><GithubOutlined/>GitHub</a><button className="effects-button" aria-pressed={effects} onClick={toggleEffects}><span className="status-dot"/>{t("MOTION")} {t(effects?'ON':'OFF')}</button></div></footer>
-    </Shell>
-
-    <Modal closable={{'aria-label':t("Close")}} transitionName={effects?undefined:""} maskTransitionName={effects?undefined:""} title={selected?t(selected.subtitle):undefined} closeIcon={<span aria-label={t("Close")}><CloseOutlined/></span>} open={!!selected} onCancel={()=>setSelected(null)} footer={<Button onClick={()=>setSelected(null)}>{t("Back to projects")}</Button>} width={620} destroyOnHidden>
-      {selected&&<ModalContent><div className="modal-visual"><ProjectVisual kind={selected.kind}/></div>{selected.image?.personal&&<ProjectPhotos photos={[selected.image.personal]} effects={effects} level={3}/>}<div className="modal-kicker">PRJ_{selected.id} / {t(selected.category)} / {t(selected.status)}</div><h3>{t(selected.name)}</h3><p>{t(selected.description)}</p><p className="project-role"><strong>{t("บทบาท / สิ่งที่ลงมือทำ")}</strong><br/>{t(selected.role)}</p><div className="modal-tags">{selected.tags.map(tag=><span className="modal-tag" key={tag}>{t(tag)}</span>)}</div><ul>{selected.details.map(d=><li key={t(d)}>{t(d)}</li>)}</ul>{(!selected.image||selected.image.generated)&&<p className="notice">{t("ภาพจำลองสำหรับอธิบายแนวงาน ภาพและเอกสารจากชิ้นงานจริงจะเพิ่มภายหลัง")}</p>}</ModalContent>}
-    </Modal>
-    <Modal closable={{'aria-label':t("Close")}} transitionName={effects?undefined:""} maskTransitionName={effects?undefined:""} title={t("ทักทายธีร์ธวัช")} closeIcon={<span aria-label={t("Close")}><CloseOutlined/></span>} open={contactOpen} onCancel={()=>setContactOpen(false)} footer={null} width={520}>
-      <ModalContent><p>{t("มีเรื่องอยากคุยหรืออยากถาม ฝากข้อความไว้ได้ครับ")}</p>{!profile.email&&<p className="notice">{t("ยังไม่ได้ตั้งค่าอีเมล แบบฟอร์มนี้สร้างข้อความให้คัดลอก หรือสามารถติดต่อผ่าน GitHub ได้")} <a href={profile.github} target="_blank" rel="noreferrer">{t('Open GitHub profile')} ↗</a></p>}
-        <Form key={locale} className="contact-form" form={form} layout="vertical" onFinish={submitContact} requiredMark={false}>
-          <Form.Item label={t("Your name / ชื่อ")} name="name" rules={[{required:true,whitespace:true,message:t('กรุณาระบุชื่อ')}]}><Input placeholder={t("What should I call you?")} autoComplete="name" maxLength={100}/></Form.Item>
-          <Form.Item label={t("Email / อีเมล")} name="email" rules={[{required:true,message:t('กรุณาระบุอีเมล')},{type:'email',message:t('กรุณาตรวจสอบรูปแบบอีเมล')}]}><Input placeholder={t("you@example.com")} autoComplete="email" maxLength={254}/></Form.Item>
-          <Form.Item label={t("Your idea / ไอเดียของคุณ")} name="message" rules={[{required:true,whitespace:true,message:t('เล่าไอเดียของคุณสักนิด')}]}><Input.TextArea rows={4} maxLength={3000} placeholder={t("I have an idea for…")}/></Form.Item>
-          <Button htmlType="submit" type="primary" size="large" block>{t(profile.email?'Open email draft':'Create message draft')} <ArrowUpRightOutlined/></Button>
-          <p className="form-footnote">{t(profile.email?'เปิดแอปอีเมลของคุณพร้อมข้อความที่กรอก คุณตรวจสอบก่อนส่งได้':'ข้อมูลจะอยู่ในหน้าเว็บนี้เท่านั้น และหายไปเมื่อรีเฟรชหน้า')}</p>
-        </Form>
-        {draft&&<div aria-live="polite"><pre className="draft-result">{draft}</pre><Button icon={copied?<CheckOutlined/>:undefined} onClick={async()=>{try{await navigator.clipboard.writeText(draft);setCopied(true);}catch{setCopied(false);}}}>{t(copied?'Copied':'Copy message')}</Button></div>}
-      </ModalContent>
+      <footer className="footer"><div className="wrap footer-inner"><span>© {new Date().getFullYear()} Theetawatch tangtakulltanakit</span><div className="footer-controls"><AppearanceSwitcher/><button aria-pressed={effects} onClick={()=>{setEffects(v=>!v);try{localStorage.setItem('nexus-effects',effects?'off':'on');}catch{}}}>{t('MOTION')} / {t(effects?'ON':'OFF')}</button><a className="text-link" href="#home">{t('ed.top')} ↑</a></div></div></footer>
+    </Editorial>
+    <PhotoViewer photos={displayPhotos} index={viewer} setIndex={setViewer} effects={effects}/>
+    <Modal open={!!selected} title={selected?t(selected.name):''} onCancel={()=>setSelected(null)} footer={<Button onClick={()=>setSelected(null)}>{t('Back to projects')}</Button>} width={760} destroyOnHidden closable={{'aria-label':t('Close')}} transitionName={effects?undefined:''} maskTransitionName={effects?undefined:''}>
+      {selected&&<ModalContent><p>{t(selected.description)}</p><p><strong>{t('บทบาท / สิ่งที่ลงมือทำ')}</strong><br/>{t(selected.role)}</p><ul>{selected.details.map(item=><li key={item}>{t(item)}</li>)}</ul>{projectPhoto(selected)&&<ProjectPhotos photos={[projectPhoto(selected)!]} effects={effects} level={3}/>}</ModalContent>}
     </Modal>
   </ConfigProvider>;
 }
