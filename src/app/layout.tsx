@@ -36,7 +36,6 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return <html lang="th">
     <head>
       <link href="/fonts/fonts.css" rel="stylesheet" />
-      <link href="/fonts/reading.css" rel="stylesheet" />
     </head>
     <body><Registry><AntdRegistry><LocaleProvider><AppearanceProvider>{children}</AppearanceProvider></LocaleProvider></AntdRegistry></Registry></body>
   </html>;

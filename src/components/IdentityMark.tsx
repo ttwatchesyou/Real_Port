@@ -1,2 +1,0 @@
-/** Interlocking T initials, with an assembly joint and two drafting guides. */
-export default function IdentityMark(){return <svg viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M7 11h30v8H26v29h-8V19H7v-8Z" fill="currentColor"/><path d="M31 27h26v8h-9v20h-8V35h-9v-8Z" stroke="currentColor" strokeWidth="2.5"/><path d="m26 47 14-12M7 55h21M44 11h13" stroke="currentColor" strokeWidth="1.4"/><circle cx="44" cy="11" r="3" fill="var(--bg,white)" stroke="currentColor" strokeWidth="1.5"/><circle cx="44" cy="31" r="2" fill="currentColor"/></svg>;}

@@ -6,9 +6,9 @@ import thTH from 'antd/locale/th_TH';
 import enUS from 'antd/locale/en_US';
 import zhCN from 'antd/locale/zh_CN';
 import { ArrowLeftOutlined, ArrowRightOutlined, SearchOutlined } from '@ant-design/icons';
-import { useLocale } from '../LocaleProvider';
+import { useLocale, LanguageSwitcher } from '../LocaleProvider';
 import { useAppearance } from '../AppearanceProvider';
-import SiteFrame from '../SiteFrame';
+import AppearanceSwitcher from '../AppearanceSwitcher';
 import { GlobalStyle } from '../styles';
 import { workStudies, type WorkStudy, type WorkGroup } from '@/data/workArchive';
 import { personalPhotos } from '@/data/personalPhotos';
@@ -20,10 +20,11 @@ import { Notebook } from './styles';
 function Frame({children}:{children:ReactNode}){
   const {locale,t}=useLocale(),{palette}=useAppearance();
   return <ConfigProvider locale={locale==='th'?thTH:locale==='zh'?zhCN:enUS} theme={{algorithm:palette.isDark?theme.darkAlgorithm:theme.defaultAlgorithm,token:{colorPrimary:palette.accent,colorBgContainer:palette.surface,colorBgElevated:palette.surface,colorText:palette.text,colorTextSecondary:palette.muted,colorBorder:palette.border,fontFamily:'Inter, IBM Plex Sans Thai, sans-serif'}}}>
-    <GlobalStyle/><SiteFrame><Notebook>
+    <GlobalStyle/><Notebook>
+      <header className="book-header"><div className="book-wrap header-inner"><Link href="/" className="book-brand">theetawatch<span>.</span></Link><div className="header-tools"><Link href="/#projects" className="home-link"><ArrowLeftOutlined/>{t('work.home')}</Link><LanguageSwitcher/></div></div></header>
       {children}
-      <footer className="book-footer"><div className="book-wrap footer-inner"><Link href="/#projects">← {t('work.home')}</Link><span>Theetawatch tangtakulltanakit</span></div></footer>
-    </Notebook></SiteFrame>
+      <footer className="book-footer"><div className="book-wrap footer-inner"><Link href="/#projects">← {t('work.home')}</Link><span>Theetawatch tangtakulltanakit</span><AppearanceSwitcher/></div></footer>
+    </Notebook>
   </ConfigProvider>;
 }
 function Entry({study}:{study:WorkStudy}){
@@ -39,8 +40,8 @@ export default function WorkIndex(){
   const words=query.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
   const entries=workStudies.filter(s=>(group==='all'||s.group===group)&&words.every(word=>[...Object.values(s.title),...Object.values(s.summary),...s.tags].join(' ').toLocaleLowerCase().includes(word)));
   const clear=()=>{setGroup('all');setQuery('');};
-  return <Frame><main id="main" className="book-wrap">
-    <section className="book-hero" aria-labelledby="notebook-title"><div><div className="book-label">{t('ed.archive')} / 12</div><h1 id="notebook-title">{t('field.index')}</h1><p className="intro">{t('work.intro')}</p></div></section>
+  return <Frame><main className="book-wrap">
+    <section className="book-hero" aria-labelledby="notebook-title"><div><div className="book-label">WORK / PROJECT NOTEBOOK</div><h1 id="notebook-title">{t('work.heading')}</h1><p className="intro">{t('work.intro')}</p><div className="hero-count"><strong>12</strong><span>{t('ed.projects')}<br/>THEETAWATCH</span></div></div><figure className="desk-photo"><img src={personalPhotos.workbench.src} srcSet={`${personalPhotos.workbench.thumbnail} 480w, ${personalPhotos.workbench.src} 960w`} sizes="(max-width:700px) 90vw, 40vw" width="960" height="1280" alt={t(personalPhotos.workbench.alt)}/><figcaption>{t('work.context')}</figcaption></figure></section>
     <section className="browse" aria-label={t('work.title')}><div className="browse-head"><Input className="search" allowClear prefix={<SearchOutlined/>} placeholder={t('work.search')} aria-label={t('work.search')} value={query} onChange={e=>setQuery(e.target.value)} autoComplete="off"/><span className="result-count" role="status">{String(entries.length).padStart(2,'0')} / 12 · {t('work.count')}</span></div><div className="filters" role="group" aria-label={t('Filter projects')}>{(['all','automation','embedded','robotics','learning'] as const).map(g=><button type="button" key={g} aria-pressed={group===g} onClick={()=>setGroup(g)}>{t(`work.${g}`)}</button>)}</div><div className="book-grid">{entries.map(s=><Entry key={s.slug} study={s}/>)}</div>{entries.length===0&&<div className="empty"><p>{t('work.noResults')}</p><Button onClick={clear}>{t('work.clear')}</Button></div>}</section>
   </main></Frame>;
 }
@@ -51,7 +52,7 @@ export function WorkDetail({study,source}:{study:WorkStudy;source:string}){
   const position=workStudies.findIndex(s=>s.slug===study.slug),prev=workStudies[(position+11)%12],next=workStudies[(position+1)%12];
   const notes=workDetails[study.slug],photos=study.photos??[],videos=study.videos??[];
   const displaySource=source.replace(/\s*\[cite:\s*[^\]]+\]/g,'');
-  return <Frame><main id="main" className="book-wrap">
+  return <Frame><main className="book-wrap">
     <nav className="breadcrumbs" aria-label={t('work.title')}><Link href="/work">← {t('work.back')}</Link><span>/</span><span>NOTE {study.number}</span></nav>
     <section className="detail-hero" aria-labelledby="study-title"><div><div className="book-label">{t(`work.${study.group}`)} / NOTE {study.number}</div><h1 id="study-title">{study.title[locale]}</h1><p className="detail-summary">{study.summary[locale]}</p><div className="entry-tags">{study.tags.map(tag=><span key={tag}>{tag}</span>)}</div>{photos.length===0&&videos.length===0&&<p className="photo-pending"><span/>{t('work.photosPending')}</p>}</div>{photos[0]&&<figure className="detail-art"><img src={photos[0].src} width={photos[0].width} height={photos[0].height} alt={t(photos[0].alt)}/><figcaption>{t(photos[0].caption)}</figcaption></figure>}</section>
     {photos.length>0&&<ProjectPhotos key={study.slug} photos={photos} effects={motion&&!reduced}/>}

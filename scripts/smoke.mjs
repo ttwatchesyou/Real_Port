@@ -12,13 +12,10 @@ try{
  await page.goto(base,{waitUntil:'networkidle'});
  assert.equal(await page.locator('html').getAttribute('lang'),'th');
  assert.equal(await page.locator('h1').count(),1);
- assert.equal(await page.locator('.case-story').count(),3);
- assert.equal(await page.locator('.identity-mark svg').count(),1);
  assert.equal(await page.locator('.project-card').count(),6);
  assert.equal(await page.locator('canvas,.board-model,.ambient-effects').count(),0);
  await language().selectOption('en');
- assert.match(await page.locator('h1').innerText(),/I build robots/);
- await page.locator('.case-pid .image-button').click();await page.locator('.photo-viewer-modal').waitFor();assert.equal(await page.locator('.photo-strip button').count(),2);await page.keyboard.press('Escape');await page.locator('.photo-viewer-modal').waitFor({state:'hidden'});
+ assert.match(await page.locator('h1').innerText(),/Ideas into/);
  const hero=page.locator('.carousel-window img');const first=await hero.getAttribute('src');
  await page.locator('.carousel-controls button').last().click();assert.notEqual(await hero.getAttribute('src'),first);
  await page.locator('.carousel-window button').click();await page.locator('.photo-viewer-modal').waitFor();
@@ -32,12 +29,11 @@ try{
  await search.fill('no-such-work');assert.equal(await page.locator('.project-card').count(),0);await page.getByRole('button',{name:'Clear filters',exact:true}).click();
  await page.getByRole('button',{name:/View all projects/}).click();await page.locator('button.project-card').first().click();await page.getByRole('dialog').waitFor();
  assert.ok(await page.getByRole('dialog').locator('.build-photo-button img').count());await page.getByRole('button',{name:'Back to projects'}).click();
- await page.locator('.contact-details summary').click();
  await page.getByRole('button',{name:'Create message draft'}).click();await page.getByText('Please enter your name.',{exact:true}).waitFor();
  await page.locator('#name').fill('Visitor');await page.locator('#email').fill('visitor@example.com');await page.locator('#message').fill('Let’s discuss a robotics project.');await page.getByRole('button',{name:'Create message draft'}).click();assert.match(await page.locator('.draft-result').innerText(),/robotics project/);
  const theme=page.locator('select:has(option[value="dark"])');await theme.selectOption('dark');assert.equal(await page.locator('html').getAttribute('data-color-scheme'),'dark');await theme.selectOption('light');
- for(const locale of ['th','en','zh']){await language().selectOption(locale);assert.equal(await page.locator('html').getAttribute('lang'),locale==='zh'?'zh-CN':locale);assert.doesNotMatch(await page.locator('main').innerText(),/\bed\.[a-z]|\bwork\.[a-z]|\bfield\.[a-z]/);for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await noOverflow();}}
- await language().selectOption('en');await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Open navigation'}).click();await page.locator('#main-navigation').getByRole('link',{name:'About me',exact:true}).click();assert.equal(await page.getByRole('button',{name:'Open navigation'}).getAttribute('aria-expanded'),'false');
+ for(const locale of ['th','en','zh']){await language().selectOption(locale);assert.equal(await page.locator('html').getAttribute('lang'),locale==='zh'?'zh-CN':locale);assert.doesNotMatch(await page.locator('main').innerText(),/\bed\.[a-z]|\bwork\.[a-z]/);for(const width of [320,390,768,1440]){await page.setViewportSize({width,height:900});await noOverflow();}}
+ await language().selectOption('en');await page.setViewportSize({width:390,height:844});await page.getByRole('button',{name:'Open navigation'}).click();await page.locator('#main-navigation').getByRole('link',{name:'About',exact:true}).click();assert.equal(await page.getByRole('button',{name:'Open navigation'}).getAttribute('aria-expanded'),'false');
  await page.goto(base+'/work',{waitUntil:'networkidle'});assert.equal(await page.locator('.entry').count(),12);assert.equal(await page.locator('.entry-visual img').count(),12);assert.equal(await page.locator('canvas').count(),0);
  await page.locator('.search input').fill('ESP32 MQTT');assert.equal(await page.locator('.entry').count(),1);await page.locator('.entry').click();await page.waitForURL('**/work/pid-motor-trainer');assert.ok(await page.locator('.detail-art img').count());assert.equal(await page.locator('.drawing,canvas').count(),0);
  const title=await page.title();assert.match(title,/PID|มอเตอร์/);await noOverflow();

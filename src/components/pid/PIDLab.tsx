@@ -6,8 +6,8 @@ import thTH from 'antd/locale/th_TH';import enUS from 'antd/locale/en_US';import
 import { PlayCircleOutlined, PauseOutlined, ReloadOutlined, DownloadOutlined, WarningOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { GlobalStyle } from '../styles';
 import { useAppearance } from '../AppearanceProvider';
-import SiteFrame from '../SiteFrame';
-import { useLocale } from '../LocaleProvider';
+import AppearanceSwitcher from '../AppearanceSwitcher';
+import { LanguageSwitcher, useLocale } from '../LocaleProvider';
 import { LabShell } from './styles';
 import { usePIDText } from './text';
 import { useSimulation } from './useSimulation';
@@ -48,8 +48,8 @@ export default function PIDLab(){
   const changePlant=(next:Plant)=>sim.switchPlant(next);
   const fields=plant==='motor'?[{key:'limit',label:'voltage',min:1,max:24,step:1},{key:'friction',label:'friction',min:0,max:.02,step:.001},{key:'load',label:'load',min:-.2,max:.2,step:.01},{key:'cpr',label:'encoder',min:64,max:8192,step:64}]:[{key:'limit',label:plant==='pendulum'?'torque':'force',min:.2,max:plant==='pendulum'?8:30,step:.1},{key:'mass',label:'mass',min:.1,max:1,step:.05},{key:'length',label:'length',min:.3,max:1,step:.05},{key:'friction',label:'friction',min:0,max:.3,step:.01},{key:'initialAngle',label:'initialAngle',min:-45,max:45,step:1}];
   return <ConfigProvider locale={locale==='th'?thTH:locale==='zh'?zhCN:enUS} theme={{algorithm:palette.isDark?theme.darkAlgorithm:theme.defaultAlgorithm,token:{colorPrimary:palette.accent,colorBgContainer:palette.surface,colorBgElevated:palette.surface,colorText:palette.text,colorTextSecondary:palette.muted,colorBorder:palette.border,borderRadius:5,fontFamily:'Inter, IBM Plex Sans Thai, sans-serif'},components:{Button:{colorPrimary:palette.accent,primaryColor:palette.bg}}}}>
-    <GlobalStyle/><SiteFrame><LabShell>
-      <main id="main" className="lab-wrap"><div className="lab-intro"><div><div className="kicker">INTERACTIVE ENGINEERING / 007</div><h1>PID <em>Lab.</em></h1><p className="intro-copy">{t('lead')}</p></div><span className="intro-tag">{t('educational')}</span></div>
+    <GlobalStyle/><LabShell><header className="lab-nav"><div className="lab-wrap lab-nav-inner"><Link className="lab-brand" href="/">theetawatch.<span>CONTROL STUDIO</span></Link><div className="nav-tools"><Link className="back-link" href="/#projects">← {t('back')}</Link><AppearanceSwitcher/><LanguageSwitcher/></div></div></header>
+      <main className="lab-wrap"><div className="lab-intro"><div><div className="kicker">INTERACTIVE ENGINEERING / 007</div><h1>PID <em>Lab.</em></h1><p className="intro-copy">{t('lead')}</p></div><span className="intro-tag">{t('educational')}</span></div>
         <div className="plant-tabs" role="tablist" aria-label={t('experiment')}>{(['motor','pendulum','cart']as const).map((item,i)=><button className="plant-tab" role="tab" id={`pid-tab-${item}`} aria-controls="pid-workspace" aria-selected={plant===item} tabIndex={plant===item?0:-1} key={item} onClick={()=>changePlant(item)} onKeyDown={event=>{const items:Plant[]=['motor','pendulum','cart'];let index=i;if(event.key==='ArrowRight')index=(i+1)%3;else if(event.key==='ArrowLeft')index=(i+2)%3;else if(event.key==='Home')index=0;else if(event.key==='End')index=2;else return;event.preventDefault();changePlant(items[index]);document.getElementById(`pid-tab-${items[index]}`)?.focus();}}><PlantIcon plant={item}/><span><small>0{i+1} / {t(item+'Sub')}</small><strong>{t(item)}</strong></span><span className="plant-arrow">↗</span></button>)}</div>
         <div className="workspace" id="pid-workspace" role="tabpanel" aria-labelledby={`pid-tab-${plant}`}>
           <div className="lab-main">
@@ -83,6 +83,6 @@ export default function PIDLab(){
         <div className="learning-grid">{[1,2,3].map(i=><article className="learning-card" key={i}><span className="step">0{i} / {['P','D','I'][i-1]}</span><h3>{t('learn'+i)}</h3><p>{t('learn'+i+'Body')}</p></article>)}</div>
         <div className="model-notes"><details><summary>{t('assumptions')}</summary><p>{t('modelScope')}</p><pre className="equations">{plant==='motor'?'L di/dt = V − R i − K ω\nJ dω/dt = K i − b ω − τload\nx = r θ;   encoder = round(θ × CPR / 2π)\nR = 2 Ω; L = 0.03 H; J = 0.002 kg·m²; K = 0.1; r = 0.03 m':plant==='pendulum'?'m l² θ̈ = m g l sin(θ) − b θ̇ + τ\nθ = 0 at upright; θ > 0 leans right; g = 9.81 m/s²':'(M + m) ẍ + m l cos(θ) θ̈ − m l sin(θ) θ̇² = F − b ẋ\nm l cos(θ) ẍ + m l² θ̈ − m g l sin(θ) = −bp θ̇\nM = 0.7 kg; bp = 0.005 N·m·s/rad; g = 9.81 m/s²'}</pre><p>{t('band')}</p><div className="source-links"><a href="https://ctms.engin.umich.edu/CTMS/index.php?example=MotorSpeed&section=SystemModeling" target="_blank" rel="noreferrer">Michigan CTMS · DC motor ↗</a><a href="https://underactuated.mit.edu/pend.html" target="_blank" rel="noreferrer">MIT · Pendulum ↗</a><a href="https://underactuated.mit.edu/acrobot.html#cart_pole" target="_blank" rel="noreferrer">MIT · Cart-pole ↗</a><a href="https://www.mathworks.com/help/simulink/slref/pidcontroller.html" target="_blank" rel="noreferrer">MathWorks · PID ↗</a></div></details></div>
       </main><footer className="lab-footer"><div className="lab-wrap"><Link href="/#projects">← {t('back')}</Link><span>{t('footer')}</span></div></footer>
-    </LabShell></SiteFrame>
+    </LabShell>
   </ConfigProvider>;
 }
