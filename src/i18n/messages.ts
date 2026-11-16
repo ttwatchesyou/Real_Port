@@ -1,9 +1,11 @@
+import { fieldMessages } from './fieldNotes';
 import { editorialMessages } from './editorial';
 import { workMediaMessages } from '@/data/workMedia';
 import { workMessages } from '@/data/workArchive';
 import { workDetailMessages } from '@/data/workDetails';
 export const messages: Record<string, { th: string; en: string; zh: string }> = {
   ...editorialMessages,
+  ...fieldMessages,
   ...workMessages,
   ...workMediaMessages,
   ...workDetailMessages,
